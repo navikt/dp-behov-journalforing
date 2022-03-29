@@ -1,6 +1,6 @@
 package no.nav.dagpenger.behov.journalforing
 
-import io.ktor.client.*
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.ContentNegotiation

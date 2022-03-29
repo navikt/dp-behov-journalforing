@@ -8,11 +8,11 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class JournalforingBehovLoserTest() {
+internal class JournalforingBehovLøserTest {
     private val fillager = mockk<Fillager>()
     private val journalpostApi = mockk<JournalpostApi>()
     private val testRapid = TestRapid().also {
-        JournalforingBehovLoser(it, fillager, journalpostApi)
+        JournalforingBehovLøser(it, fillager, journalpostApi)
     }
 
     @Test
