@@ -24,15 +24,14 @@ kotlin {
 }
 
 dependencies {
-    val ktor_version = "2.0.0-beta-1"
+    val ktor_version = "1.6.8"
     implementation(RapidAndRivers)
 
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+    implementation("io.ktor:ktor-client-serialization:$ktor_version")
 
     implementation(Mockk.mockk)
 
