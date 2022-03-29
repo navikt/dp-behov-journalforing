@@ -1,1 +1,2 @@
-test: bar
+kafka:
+  pool: nav-prod
