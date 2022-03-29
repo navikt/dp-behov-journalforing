@@ -5,6 +5,7 @@ plugins {
     application
     kotlin("jvm") version Kotlin.version
     id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
+    kotlin("plugin.serialization") version "1.6.10"
 }
 
 repositories {
@@ -28,9 +29,16 @@ dependencies {
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
 
+    val ktor_version = "2.+"
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+
     implementation(Mockk.mockk)
 
     testImplementation(kotlin("test"))
+    testImplementation("io.ktor:ktor-client-mock:$ktor_version")
 }
 
 tasks.withType<Test> {

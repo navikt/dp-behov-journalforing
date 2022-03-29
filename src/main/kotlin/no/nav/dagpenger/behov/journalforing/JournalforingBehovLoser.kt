@@ -1,5 +1,6 @@
 package no.nav.dagpenger.behov.journalforing
 
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
@@ -30,19 +31,21 @@ internal class JournalforingBehovLoser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        logg.info("Mottok behov for ny journalpost med uuid ${packet["søknad_uuid"].asText()}")
-        val filer = packet["filer"].map {
-            mapOf(
-                "filtype" to it["type"].asText(),
-                "fysiskDokument" to fillager.hentFil(it["urn"].asText()),
-                "variantformat" to "ARKIV"
+        runBlocking {
+            logg.info("Mottok behov for ny journalpost med uuid ${packet["søknad_uuid"].asText()}")
+            val filer = packet["filer"].map {
+                mapOf(
+                    "filtype" to it["type"].asText(),
+                    "fysiskDokument" to fillager.hentFil(it["urn"].asText()),
+                    "variantformat" to "ARKIV"
+                )
+            }
+            val journalpostId = journalpostApi.opprett(
+                ident = packet["ident"].asText(),
+                dokumenter = filer
             )
+            packet["@løsning"] = mapOf(BEHOV to journalpostId)
+            context.publish(packet.toJson())
         }
-        val journalpostId = journalpostApi.opprett(
-            ident = packet["ident"].asText(),
-            dokumenter = filer
-        )
-        packet["@løsning"] = mapOf(BEHOV to journalpostId)
-        context.publish(packet.toJson())
     }
 }

@@ -1,5 +1,6 @@
 package no.nav.dagpenger.behov.journalforing
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
@@ -16,7 +17,7 @@ internal class JournalforingBehovLoserTest() {
 
     @Test
     fun `løser behov for å opprette ny journalpost`() {
-        every {
+        coEvery {
             fillager.hentFil(any())
         } returns "asdlfkjskljflk"
         every {
