@@ -9,7 +9,7 @@ import io.ktor.serialization.kotlinx.json.json
 
 class FillagerHttp(engine: HttpClientEngine) : Fillager {
     private val client = HttpClient(engine) {
-        install(ContentNegotiation){
+        install(ContentNegotiation) {
             json()
         }
     }
