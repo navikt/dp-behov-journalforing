@@ -7,9 +7,7 @@ import com.natpryce.konfig.EnvironmentVariables
 import com.natpryce.konfig.overriding
 
 internal object Configuration {
-
     const val appName = "dp-behov-journalforing"
-
     private val defaultProperties = ConfigurationMap(
         mapOf(
             "RAPID_APP_NAME" to appName,
@@ -20,7 +18,6 @@ internal object Configuration {
     )
     val properties: Configuration =
         ConfigurationProperties.systemProperties() overriding EnvironmentVariables() overriding defaultProperties
-
     val config: Map<String, String> = properties.list().reversed().fold(emptyMap()) { map, pair ->
         map + pair.second
     }

@@ -2,9 +2,8 @@ package no.nav.dagpenger.behov.journalforing
 
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-
 
 internal class JournalforingBehovLøserTest {
     val testRapid = TestRapid().also {
