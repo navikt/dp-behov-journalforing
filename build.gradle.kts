@@ -24,7 +24,7 @@ kotlin {
 }
 
 dependencies {
-    val ktor_version = "2.+"
+    val ktor_version = "2.0.0-beta-1"
     implementation(RapidAndRivers)
 
     implementation(Konfig.konfig)
