@@ -4,8 +4,8 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 plugins {
     application
     kotlin("jvm") version Kotlin.version
-    id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
-    kotlin("plugin.serialization") version "1.6.10"
+    id("org.jmailen.kotlinter") version "3.9.0"
+    kotlin("plugin.serialization") version Kotlin.version
 }
 
 repositories {
@@ -24,12 +24,11 @@ kotlin {
 }
 
 dependencies {
+    val ktor_version = "2.+"
     implementation(RapidAndRivers)
 
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
-
-    val ktor_version = "2.+"
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
