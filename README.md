@@ -1,4 +1,4 @@
-# Dagpenger-SERVICENAME
+# dp-behov-journalforing
 
 ## Komme i gang
 

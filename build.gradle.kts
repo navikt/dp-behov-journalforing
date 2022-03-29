@@ -13,7 +13,7 @@ repositories {
 }
 
 application {
-    mainClass.set("no.nav.dagpenger.SERVICENAME")
+    mainClass.set("no.nav.dagpenger.behov.journalforing.AppKt")
 }
 
 kotlin {
