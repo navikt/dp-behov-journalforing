@@ -5,9 +5,9 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class JournalforingBehovLøserTest {
+internal class JournalforingBehovLoserTest {
     val testRapid = TestRapid().also {
-        JournalforingBehovLøser(it)
+        JournalforingBehovLoser(it)
     }
 
     @Test
