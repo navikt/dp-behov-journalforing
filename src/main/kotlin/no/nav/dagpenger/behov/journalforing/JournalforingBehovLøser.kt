@@ -2,6 +2,8 @@ package no.nav.dagpenger.behov.journalforing
 
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import no.nav.dagpenger.behov.journalforing.JournalpostApi.Dokumentvariant.Filtype
+import no.nav.dagpenger.behov.journalforing.JournalpostApi.Dokumentvariant.Variant
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -14,17 +16,16 @@ internal class JournalforingBehovLøser(
 ) : River.PacketListener {
     private companion object {
         private val logg = KotlinLogging.logger {}
-        const val BEHOV = "NyJournalpost"
     }
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandAll("@behov", listOf(BEHOV)) }
+            validate { it.demandAll("@behov", listOf("NyJournalpost")) }
             validate { it.rejectKey("@løsning") }
             validate { it.requireKey("søknad_uuid", "ident") }
             validate {
                 it.requireArray("filer") {
-                    requireKey("type", "urn")
+                    requireKey("urn")
                 }
             }
         }.register(this)
@@ -33,18 +34,24 @@ internal class JournalforingBehovLøser(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         runBlocking {
             logg.info("Mottok behov for ny journalpost med uuid ${packet["søknad_uuid"].asText()}")
-            val filer = packet["filer"].map {
-                mapOf(
-                    "filtype" to it["type"].asText(),
-                    "fysiskDokument" to fillager.hentFil(it["urn"].asText()),
-                    "variantformat" to "ARKIV"
+            val dokumenter = packet["filer"].map {
+                JournalpostApi.Dokument(
+                    "123",
+                    listOf(
+                        JournalpostApi.Dokumentvariant(
+                            Filtype.PDF,
+                            Variant.ARKIV,
+                            fillager.hentFil(it["urn"].asText()),
+                        )
+                    )
                 )
             }
             val journalpostId = journalpostApi.opprett(
-                ident = packet["ident"].asText(),
-                dokumenter = filer
+                ident = packet["ident"].asText(), dokumenter = dokumenter
             )
-            packet["@løsning"] = mapOf(BEHOV to journalpostId)
+            packet["@løsning"] = mapOf(
+                "NyJournalpost" to journalpostId
+            )
             context.publish(packet.toJson())
         }
     }

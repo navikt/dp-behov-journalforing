@@ -42,11 +42,9 @@ val testMessage = """{
    "ident": "12345678910",
    "filer": [
      {
-       "type": "application/pdf",
        "urn": "urn:dp-mellomlagring:123"
      },
      {
-       "type": "image/svg",
        "urn": "urn:dp-mellomlagring:345"
      }
    ]
