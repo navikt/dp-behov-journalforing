@@ -28,6 +28,8 @@ dependencies {
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
 
+    implementation(Mockk.mockk)
+
     testImplementation(kotlin("test"))
 }
 

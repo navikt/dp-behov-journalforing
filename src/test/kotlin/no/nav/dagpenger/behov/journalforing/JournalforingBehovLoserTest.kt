@@ -1,41 +1,53 @@
 package no.nav.dagpenger.behov.journalforing
 
+import io.mockk.every
+import io.mockk.mockk
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-internal class JournalforingBehovLoserTest {
-    val testRapid = TestRapid().also {
-        JournalforingBehovLoser(it)
+internal class JournalforingBehovLoserTest() {
+    private val fillager = mockk<Fillager>()
+    private val journalpostApi = mockk<JournalpostApi>()
+    private val testRapid = TestRapid().also {
+        JournalforingBehovLoser(it, fillager, journalpostApi)
     }
 
     @Test
-    fun `besvarer pdf behov`() {
+    fun `løser behov for å opprette ny journalpost`() {
+        every {
+            fillager.hentFil(any())
+        } returns "asdlfkjskljflk"
+        every {
+            journalpostApi.opprett(any(), any())
+        } returns "journalpost123"
+
         testRapid.sendTestMessage(testMessage)
-        assertEquals(1, testRapid.inspektør.size)
-    }
 
-    @Test
-    fun `besvar ikke behov hvis løsning er besvart`() {
-        testRapid.sendTestMessage(testMessageMedLøsning)
-        assertEquals(0, testRapid.inspektør.size)
+        with(testRapid.inspektør) {
+            assertEquals(1, size)
+            assertEquals("journalpost123", field(0, "@løsning")["NyJournalpost"].asText())
+        }
     }
 }
 
 @Language("JSON")
-val testMessage = """ {
-        "@behov": ["arkiverbarSøknad"],
-        "søknad_uuid": "hasfakfhajkfhkasjfhk",
-        "ident": "12345678910"
-            }
-""".trimIndent()
-
-@Language("JSON")
-val testMessageMedLøsning = """ {
-        "@behov": ["arkiverbarSøknad"],
-        "@løsning": "something",
-        "søknad_uuid": "hasfakfhajkfhkasjfhk",
-        "ident": "12345678910"
-            }
+val testMessage = """{
+   "@behov": [
+     "NyJournalpost"
+   ],
+   "søknad_uuid": "hasfakfhajkfhkasjfhk",
+   "ident": "12345678910",
+   "filer": [
+     {
+       "type": "application/pdf",
+       "urn": "urn:dp-mellomlagring:123"
+     },
+     {
+       "type": "image/svg",
+       "urn": "urn:dp-mellomlagring:345"
+     }
+   ]
+}
 """.trimIndent()
