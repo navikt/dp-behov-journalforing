@@ -1,4 +1,4 @@
-package no.nav.dagpenger.behov.journalforing
+package no.nav.dagpenger.behov.journalforing.fillager
 
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond

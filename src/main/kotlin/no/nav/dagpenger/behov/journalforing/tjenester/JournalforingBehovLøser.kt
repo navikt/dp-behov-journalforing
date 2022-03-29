@@ -1,9 +1,11 @@
-package no.nav.dagpenger.behov.journalforing
+package no.nav.dagpenger.behov.journalforing.tjenester
 
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import no.nav.dagpenger.behov.journalforing.JournalpostApi.Dokumentvariant.Filtype
-import no.nav.dagpenger.behov.journalforing.JournalpostApi.Dokumentvariant.Variant
+import no.nav.dagpenger.behov.journalforing.fillager.Fillager
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokumentvariant.Filtype
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokumentvariant.Variant
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -46,11 +48,11 @@ internal class JournalforingBehovLøser(
                     )
                 )
             }
-            val journalpostId = journalpostApi.opprett(
+            val journalpost = journalpostApi.opprett(
                 ident = packet["ident"].asText(), dokumenter = dokumenter
             )
             packet["@løsning"] = mapOf(
-                "NyJournalpost" to journalpostId
+                "NyJournalpost" to journalpost
             )
             context.publish(packet.toJson())
         }

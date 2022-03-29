@@ -1,7 +1,7 @@
-package no.nav.dagpenger.behov.journalforing
+package no.nav.dagpenger.behov.journalforing.journalpost
 
 internal interface JournalpostApi {
-    fun opprett(ident: String, dokumenter: List<Dokument>): String
+    suspend fun opprett(ident: String, dokumenter: List<Dokument>): String
 
     data class Dokument(
         val brevkode: String,

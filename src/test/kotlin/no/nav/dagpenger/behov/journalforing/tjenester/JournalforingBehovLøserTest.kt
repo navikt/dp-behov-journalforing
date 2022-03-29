@@ -1,8 +1,9 @@
-package no.nav.dagpenger.behov.journalforing
+package no.nav.dagpenger.behov.journalforing.tjenester
 
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
+import no.nav.dagpenger.behov.journalforing.fillager.Fillager
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -20,7 +21,7 @@ internal class JournalforingBehovLøserTest {
         coEvery {
             fillager.hentFil(any())
         } returns "asdlfkjskljflk"
-        every {
+        coEvery {
             journalpostApi.opprett(any(), any())
         } returns "journalpost123"
 
