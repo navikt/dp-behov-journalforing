@@ -4,8 +4,10 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
-import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokumentvariant.Filtype
-import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokumentvariant.Variant
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -40,12 +42,12 @@ internal class JournalforingBehovLøser(
         runBlocking {
             logg.info("Mottok behov for ny journalpost med uuid ${packet["søknad_uuid"].asText()}")
             val dokumenter = packet["dokumenter"].map { dokument ->
-                JournalpostApi.Dokument(
-                    "123",
+                Dokument(
+                    dokument["brevkode"].asText(),
                     dokument["varianter"].map { variant ->
-                        JournalpostApi.Dokumentvariant(
+                        Variant(
                             Filtype.PDF,
-                            Variant.ARKIV,
+                            Format.ARKIV,
                             fillager.hentFil(variant["urn"].asText()),
                         )
                     }

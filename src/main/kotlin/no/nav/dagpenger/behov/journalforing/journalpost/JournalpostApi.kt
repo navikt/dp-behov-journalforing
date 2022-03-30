@@ -5,19 +5,19 @@ internal interface JournalpostApi {
 
     data class Dokument(
         val brevkode: String,
-        val varianter: List<Dokumentvariant>
+        val varianter: List<Variant>
     )
 
-    data class Dokumentvariant(
+    data class Variant(
         val filtype: Filtype,
-        val variant: Variant,
+        val format: Format,
         val fysiskDokument: String,
     ) {
         enum class Filtype {
             PDF, PDFA, JPEG, TIFF, JSON, PNG,
         }
 
-        enum class Variant {
+        enum class Format {
             ARKIV, ORIGINAL, FULLVERSJON,
         }
     }
