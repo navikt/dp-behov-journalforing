@@ -8,14 +8,21 @@ import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import no.nav.dagpenger.aad.api.ClientCredentialsClient
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journalpost.Bruker
 
-internal class JournalpostApiHttp(engine: HttpClientEngine) : JournalpostApi {
+internal class JournalpostApiHttp(
+    engine: HttpClientEngine,
+    private val tokenProvider: ClientCredentialsClient,
+    private val path: String = "proxy/v1/dokarkiv/rest/journalpostapi/v1/journalpost"
+
+) : JournalpostApi {
     private val client = HttpClient(engine) {
         install(JsonFeature) {
             serializer = KotlinxSerializer(
@@ -27,11 +34,15 @@ internal class JournalpostApiHttp(engine: HttpClientEngine) : JournalpostApi {
         }
         defaultRequest {
             header("X-Nav-Consumer", "dp-behov-journalforing")
+            url {
+                host = "dp-proxy"
+            }
         }
     }
 
     override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>) =
-        client.post<Resultat>("/journalpost") {
+        client.post<Resultat>("/$path") {
+            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.getAccessToken()}")
             contentType(ContentType.Application.Json)
             body = Journalpost(
                 avsenderMottaker = Bruker(ident),

@@ -25,3 +25,10 @@ spec:
     enabled: true
   kafka:
     pool: {{ kafka.pool }}
+  azure:
+    application:
+      enabled: true
+    accessPolicy:
+      outbound:
+        external:
+          - host: {{ DP_PROXY_HOST }}

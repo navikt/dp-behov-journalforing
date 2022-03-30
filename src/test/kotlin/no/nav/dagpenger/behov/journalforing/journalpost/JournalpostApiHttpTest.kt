@@ -7,6 +7,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
@@ -20,13 +21,14 @@ internal class JournalpostApiHttpTest {
         runBlocking {
             val mockEngine = MockEngine { request ->
                 println(request.body.toByteReadPacket().readText())
+                println(request.url)
                 respond(
                     content = ByteReadChannel(dummyResponse),
                     status = HttpStatusCode.Created,
                     headers = headersOf(HttpHeaders.ContentType, "application/json")
                 )
             }
-            val apiClient = JournalpostApiHttp(mockEngine)
+            val apiClient = JournalpostApiHttp(mockEngine, mockk(relaxed = true))
             assertEquals(
                 "467010363",
                 apiClient.opprett(
