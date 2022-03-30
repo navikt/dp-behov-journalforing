@@ -1,5 +1,6 @@
 package no.nav.dagpenger.behov.journalforing.fillager
 
+import de.slub.urn.URN
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.features.json.JsonFeature
@@ -14,7 +15,8 @@ class FillagerHttp(engine: HttpClientEngine, private val tokenProvider: ClientCr
     }
 
     override suspend fun hentFil(urn: String): String {
-        return client.get("http://dp-mellomlagring/v1/mellomlagring/vedlegg/$urn") {
+        val urn = URN.rfc8141().parse(urn)
+        return client.get("http://dp-mellomlagring/v1/mellomlagring/vedlegg/${urn.namespaceSpecificString()}") {
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.getAccessToken()}")
         }
     }
