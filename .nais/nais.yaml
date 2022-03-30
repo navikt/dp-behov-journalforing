@@ -30,6 +30,8 @@ spec:
       enabled: true
   accessPolicy:
     outbound:
+      rules:
+        - application: dp-mellomlagring
       external:
         - host: {{ dokarkiv.ingress }}
   env:

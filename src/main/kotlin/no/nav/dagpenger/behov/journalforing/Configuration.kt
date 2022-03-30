@@ -18,12 +18,14 @@ internal object Configuration {
             "KAFKA_RAPID_TOPIC" to "teamdagpenger.rapid.v1",
             "KAFKA_RESET_POLICY" to "latest",
             "DOKARKIV_SCOPE" to "api://dev-fss.teamdokumenthandtering.dokarkiv/.default",
-            "DOKARKIV_INGRESS" to "dokarkiv.dev-fss-pub.nais.io"
+            "DOKARKIV_INGRESS" to "dokarkiv.dev-fss-pub.nais.io",
+            "MELLOMLAGRING_SCOPE" to "api://dev-gcp.teamdagpenger.dp-mellomlagring/.default",
         )
     )
     private val prodProperties = ConfigurationMap(
         mapOf(
             "DOKARKIV_SCOPE" to "api://prod-fss.teamdokumenthandtering.dokarkiv/.default",
+            "MELLOMLAGRING_SCOPE" to "api://prod-gcp.teamdagpenger.dp-mellomlagring/.default",
         )
     )
     val properties: Configuration by lazy {
@@ -40,6 +42,15 @@ internal object Configuration {
             }
         }
     }
+
+    val mellomlagringTokenProvider by lazy {
+        ClientCredentialsClient(properties) {
+            scope {
+                add(properties[Key("MELLOMLAGRING_SCOPE", stringType)])
+            }
+        }
+    }
+
     val config: Map<String, String> = properties.list().reversed().fold(emptyMap()) { map, pair ->
         map + pair.second
     }
