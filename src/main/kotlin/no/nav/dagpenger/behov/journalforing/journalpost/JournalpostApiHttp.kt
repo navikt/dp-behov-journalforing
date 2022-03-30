@@ -11,6 +11,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Filtype
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journalpost.Bruker
 
 internal class JournalpostApiHttp(engine: HttpClientEngine) : JournalpostApi {
@@ -19,6 +21,7 @@ internal class JournalpostApiHttp(engine: HttpClientEngine) : JournalpostApi {
             serializer = KotlinxSerializer(
                 Json {
                     ignoreUnknownKeys = true
+                    encodeDefaults = true
                 }
             )
         }
@@ -31,13 +34,29 @@ internal class JournalpostApiHttp(engine: HttpClientEngine) : JournalpostApi {
         client.post<Resultat>("/journalpost") {
             contentType(ContentType.Application.Json)
             body = Journalpost(
-                avsenderMottaker = Bruker(ident), bruker = Bruker(ident), dokumenter = emptyList()
+                avsenderMottaker = Bruker(ident),
+                behandlingstema = "ab0001",
+                bruker = Bruker(ident),
+                dokumenter = dokumenter.map { dokument ->
+                    Dokument(
+                        dokument.brevkode,
+                        dokument.varianter
+                            .map { variant ->
+                                Dokumentvariant(
+                                    Filtype.valueOf(variant.filtype.toString()),
+                                    Variant.valueOf(variant.format.toString()),
+                                    variant.fysiskDokument
+                                )
+                            }
+                    )
+                }
             )
         }.journalpostId
 
     @Serializable
     private data class Journalpost(
         val avsenderMottaker: Bruker,
+        val behandlingstema: String,
         val bruker: Bruker,
         val dokumenter: List<Dokument>,
         private val tema: String = "DAG",
