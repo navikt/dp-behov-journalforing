@@ -46,8 +46,8 @@ internal class JournalforingBehovLøser(
                     dokument["brevkode"].asText(),
                     dokument["varianter"].map { variant ->
                         Variant(
-                            Filtype.PDF,
-                            Format.ARKIV,
+                            Filtype.valueOf(variant["type"].asText()),
+                            Format.valueOf(variant["format"].asText()),
                             fillager.hentFil(variant["urn"].asText()),
                         )
                     }
