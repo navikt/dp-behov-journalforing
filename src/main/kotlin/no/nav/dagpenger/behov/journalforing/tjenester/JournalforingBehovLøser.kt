@@ -26,8 +26,11 @@ internal class JournalforingBehovLøser(
             validate { it.rejectKey("@løsning") }
             validate { it.requireKey("søknad_uuid", "ident") }
             validate {
-                it.requireArray("filer") {
-                    requireKey("urn")
+                it.requireArray("dokumenter") {
+                    requireKey("brevkode")
+                    requireArray("varianter") {
+                        requireKey("type", "urn", "format")
+                    }
                 }
             }
         }.register(this)
@@ -36,16 +39,16 @@ internal class JournalforingBehovLøser(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         runBlocking {
             logg.info("Mottok behov for ny journalpost med uuid ${packet["søknad_uuid"].asText()}")
-            val dokumenter = packet["filer"].map {
+            val dokumenter = packet["dokumenter"].map { dokument ->
                 JournalpostApi.Dokument(
                     "123",
-                    listOf(
+                    dokument["varianter"].map { variant ->
                         JournalpostApi.Dokumentvariant(
                             Filtype.PDF,
                             Variant.ARKIV,
-                            fillager.hentFil(it["urn"].asText()),
+                            fillager.hentFil(variant["urn"].asText()),
                         )
-                    )
+                    }
                 )
             }
             val journalpost = journalpostApi.opprett(

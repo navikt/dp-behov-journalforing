@@ -36,18 +36,27 @@ internal class JournalforingBehovLøserTest {
 
 @Language("JSON")
 val testMessage = """{
-   "@behov": [
-     "NyJournalpost"
-   ],
-   "søknad_uuid": "hasfakfhajkfhkasjfhk",
-   "ident": "12345678910",
-   "filer": [
-     {
-       "urn": "urn:dp-mellomlagring:123"
-     },
-     {
-       "urn": "urn:dp-mellomlagring:345"
-     }
-   ]
+  "@behov": [
+    "NyJournalpost"
+  ],
+  "søknad_uuid": "hasfakfhajkfhkasjfhk",
+  "ident": "12345678910",
+  "dokumenter": [
+    {
+      "brevkode": "NAV 04-01.04",
+      "varianter": [
+        {
+          "urn": "urn:dp-mellomlagring:123",
+          "format": "ARKIV",
+          "type": "PDF"
+        },
+        {
+          "urn": "urn:dp-mellomlagring:345",
+          "format": "ORIGINAL",
+          "type": "JSON"
+        }
+      ]
+    }
+  ]
 }
 """.trimIndent()
