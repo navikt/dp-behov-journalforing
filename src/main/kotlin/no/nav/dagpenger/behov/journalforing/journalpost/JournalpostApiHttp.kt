@@ -24,7 +24,6 @@ internal class JournalpostApiHttp(engine: HttpClientEngine) : JournalpostApi {
         }
         defaultRequest {
             header("X-Nav-Consumer", "dp-behov-journalforing")
-            url { "url" }
         }
     }
 
