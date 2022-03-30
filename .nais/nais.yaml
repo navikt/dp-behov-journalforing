@@ -28,7 +28,10 @@ spec:
   azure:
     application:
       enabled: true
-    accessPolicy:
-      outbound:
-        external:
-          - host: {{ DP_PROXY_HOST }}
+  accessPolicy:
+    outbound:
+      external:
+        - host: {{ dokarkiv.ingress }}
+  env:
+    - name: DOKARKIV_INGRESS
+      value: {{ dokarkiv.ingress }}

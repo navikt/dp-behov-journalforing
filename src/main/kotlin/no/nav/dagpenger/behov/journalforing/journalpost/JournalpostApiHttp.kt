@@ -1,5 +1,7 @@
 package no.nav.dagpenger.behov.journalforing.journalpost
 
+import com.natpryce.konfig.Key
+import com.natpryce.konfig.stringType
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.features.defaultRequest
@@ -13,6 +15,7 @@ import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import no.nav.dagpenger.aad.api.ClientCredentialsClient
+import no.nav.dagpenger.behov.journalforing.Configuration
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journalpost.Bruker
@@ -20,8 +23,7 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journ
 internal class JournalpostApiHttp(
     engine: HttpClientEngine,
     private val tokenProvider: ClientCredentialsClient,
-    private val path: String = "proxy/v1/dokarkiv/rest/journalpostapi/v1/journalpost"
-
+    private val basePath: String = "/rest/journalpostapi/v1/"
 ) : JournalpostApi {
     private val client = HttpClient(engine) {
         install(JsonFeature) {
@@ -35,13 +37,13 @@ internal class JournalpostApiHttp(
         defaultRequest {
             header("X-Nav-Consumer", "dp-behov-journalforing")
             url {
-                host = "dp-proxy"
+                host = Configuration.properties[Key("DOKARKIV_INGRESS", stringType)]
             }
         }
     }
 
     override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>) =
-        client.post<Resultat>("/$path") {
+        client.post<Resultat>("/$basePath/journalpost") {
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.getAccessToken()}")
             contentType(ContentType.Application.Json)
             body = Journalpost(

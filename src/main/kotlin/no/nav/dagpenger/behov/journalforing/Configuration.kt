@@ -10,25 +10,22 @@ import com.natpryce.konfig.stringType
 import no.nav.dagpenger.aad.api.ClientCredentialsClient
 
 internal object Configuration {
-    const val appName = "dp-behov-journalforing"
+    private const val appName = "dp-behov-journalforing"
     private val defaultProperties = ConfigurationMap(
         mapOf(
             "RAPID_APP_NAME" to appName,
             "KAFKA_CONSUMER_GROUP_ID" to "$appName-v1",
             "KAFKA_RAPID_TOPIC" to "teamdagpenger.rapid.v1",
             "KAFKA_RESET_POLICY" to "latest",
-            "DP_PROXY_SCOPE" to "api://dev-fss.teamdagpenger.dp-proxy/.default",
-            "DP_PROXY_URL" to "https://dp-proxy.dev-fss-pub.nais.io",
+            "DOKARKIV_SCOPE" to "api://dev-fss.teamdokumenthandtering.dokarkiv/.default",
+            "DOKARKIV_INGRESS" to "dokarkiv.dev-fss-pub.nais.io"
         )
     )
-
     private val prodProperties = ConfigurationMap(
         mapOf(
-            "DP_PROXY_SCOPE" to "api://prod-fss.teamdagpenger.dp-proxy/.default",
-            "DP_PROXY_URL" to "https://dp-proxy.prod-fss-pub.nais.io",
+            "DOKARKIV_SCOPE" to "api://prod-fss.teamdokumenthandtering.dokarkiv/.default",
         )
     )
-
     val properties: Configuration by lazy {
         val systemAndEnvProperties = ConfigurationProperties.systemProperties() overriding EnvironmentVariables()
         when (System.getenv().getOrDefault("NAIS_CLUSTER_NAME", "LOCAL")) {
@@ -36,15 +33,13 @@ internal object Configuration {
             else -> systemAndEnvProperties overriding defaultProperties
         }
     }
-
-    val dpProxyTokenProvider by lazy {
+    val dokarkivTokenProvider by lazy {
         ClientCredentialsClient(properties) {
             scope {
-                add(properties[Key("DP_PROXY_SCOPE", stringType)])
+                add(properties[Key("DOKARKIV_SCOPE", stringType)])
             }
         }
     }
-
     val config: Map<String, String> = properties.list().reversed().fold(emptyMap()) { map, pair ->
         map + pair.second
     }

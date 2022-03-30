@@ -1,2 +1,4 @@
 kafka:
   pool: nav-prod
+dokarkiv:
+  ingress: dokarkiv.prod-fss-pub.nais.io
