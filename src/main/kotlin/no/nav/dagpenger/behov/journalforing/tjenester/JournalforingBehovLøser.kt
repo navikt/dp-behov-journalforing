@@ -2,6 +2,7 @@ package no.nav.dagpenger.behov.journalforing.tjenester
 
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import no.nav.dagpenger.behov.journalforing.fillager.FilURN
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
@@ -48,7 +49,7 @@ internal class JournalforingBehovLøser(
                         Variant(
                             Filtype.valueOf(variant["type"].asText()),
                             Format.valueOf(variant["format"].asText()),
-                            fillager.hentFil(variant["urn"].asText()),
+                            fillager.hentFil(FilURN(variant["urn"].asText())),
                         )
                     }
                 )

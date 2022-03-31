@@ -31,7 +31,7 @@ class FillagerHttpTest {
             } returns "token"
             val apiClient = FillagerHttp(mockEngine, tokenProvider)
 
-            assertEquals(9, apiClient.hentFil("urn:vedlegg:id/fil").size)
+            assertEquals(9, apiClient.hentFil(FilURN("urn:vedlegg:id/fil")).size)
             assertEquals("Bearer token", mockEngine.requestHistory.first().headers[HttpHeaders.Authorization])
         }
     }

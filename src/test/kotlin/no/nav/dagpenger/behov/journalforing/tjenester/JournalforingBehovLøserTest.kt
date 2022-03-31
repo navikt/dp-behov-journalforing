@@ -47,12 +47,12 @@ val testMessage = """{
       "brevkode": "NAV 04-01.04",
       "varianter": [
         {
-          "urn": "urn:vedlegg:søknadId/fil1",
+          "urn": "urn:vedlegg:soknadId/fil1",
           "format": "ARKIV",
           "type": "PDF"
         },
         {
-          "urn": "urn:vedlegg:søknadId/fil2",
+          "urn": "urn:vedlegg:soknadId/fil2",
           "format": "ORIGINAL",
           "type": "JSON"
         }
