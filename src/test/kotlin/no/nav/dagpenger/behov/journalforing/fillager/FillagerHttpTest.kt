@@ -17,11 +17,11 @@ class FillagerHttpTest {
     private val tokenProvider = mockk<ClientCredentialsClient>()
 
     @Test
-    fun sampleClientTest() {
+    fun `svarer med innholdet i fila`() {
         runBlocking {
-            val mockEngine = MockEngine { request ->
+            val mockEngine = MockEngine {
                 respond(
-                    content = ByteReadChannel("127.0.0.1"),
+                    content = ByteReadChannel("flott fil"),
                     status = HttpStatusCode.OK,
                     headers = headersOf(HttpHeaders.ContentType, "application/json")
                 )
@@ -31,7 +31,7 @@ class FillagerHttpTest {
             } returns "token"
             val apiClient = FillagerHttp(mockEngine, tokenProvider)
 
-            assertEquals("127.0.0.1", apiClient.hentFil("urn:vedlegg:id/fil"))
+            assertEquals(9, apiClient.hentFil("urn:vedlegg:id/fil").size)
             assertEquals("Bearer token", mockEngine.requestHistory.first().headers[HttpHeaders.Authorization])
         }
     }

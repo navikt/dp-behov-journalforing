@@ -57,7 +57,7 @@ internal class JournalforingBehovLøser(
                 ident = packet["ident"].asText(), dokumenter = dokumenter
             )
             packet["@løsning"] = mapOf(
-                "NyJournalpost" to journalpost
+                "NyJournalpost" to journalpost.id
             )
             context.publish(packet.toJson())
         }

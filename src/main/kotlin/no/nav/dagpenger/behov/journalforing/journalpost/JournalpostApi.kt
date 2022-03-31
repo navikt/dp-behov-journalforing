@@ -1,7 +1,11 @@
 package no.nav.dagpenger.behov.journalforing.journalpost
 
 internal interface JournalpostApi {
-    suspend fun opprett(ident: String, dokumenter: List<Dokument>): String
+    suspend fun opprett(ident: String, dokumenter: List<Dokument>): Journalpost
+
+    data class Journalpost(
+        val id: String
+    )
 
     data class Dokument(
         val brevkode: String,
@@ -11,7 +15,7 @@ internal interface JournalpostApi {
     data class Variant(
         val filtype: Filtype,
         val format: Format,
-        val fysiskDokument: String,
+        val fysiskDokument: ByteArray,
     ) {
         enum class Filtype {
             PDF, PDFA, JPEG, TIFF, JSON, PNG,

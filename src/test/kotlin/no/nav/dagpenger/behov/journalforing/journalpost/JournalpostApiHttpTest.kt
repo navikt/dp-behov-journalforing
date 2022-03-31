@@ -2,7 +2,6 @@ package no.nav.dagpenger.behov.journalforing.journalpost
 
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
-import io.ktor.client.engine.mock.toByteReadPacket
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
@@ -11,6 +10,10 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype.JPEG
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype.PDF
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format.ARKIV
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format.FULLVERSJON
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -19,9 +22,7 @@ internal class JournalpostApiHttpTest {
     @Test
     fun `oppretter journalposter`() {
         runBlocking {
-            val mockEngine = MockEngine { request ->
-                println(request.body.toByteReadPacket().readText())
-                println(request.url)
+            val mockEngine = MockEngine {
                 respond(
                     content = ByteReadChannel(dummyResponse),
                     status = HttpStatusCode.Created,
@@ -29,25 +30,19 @@ internal class JournalpostApiHttpTest {
                 )
             }
             val apiClient = JournalpostApiHttp(mockEngine, mockk(relaxed = true))
-            assertEquals(
-                "467010363",
-                apiClient.opprett(
-                    "urn",
-                    listOf(
-                        Dokument(
-                            "123",
-                            listOf(
-                                Variant(
-                                    Variant.Filtype.JPEG, Variant.Format.ARKIV, fysiskDokument = ""
-                                ),
-                                Variant(
-                                    Variant.Filtype.PDF, Variant.Format.FULLVERSJON, fysiskDokument = ""
-                                )
-                            )
+            val journalpost = apiClient.opprett(
+                "brukerident",
+                listOf(
+                    Dokument(
+                        "123",
+                        listOf(
+                            Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
+                            Variant(PDF, FULLVERSJON, fysiskDokument = ByteArray(2))
                         )
                     )
                 )
             )
+            assertEquals("467010363", journalpost.id)
         }
     }
 }

@@ -4,6 +4,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Journalpost
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -20,10 +21,10 @@ internal class JournalforingBehovLøserTest {
     fun `løser behov for å opprette ny journalpost`() {
         coEvery {
             fillager.hentFil(any())
-        } returns "asdlfkjskljflk"
+        } returns "asdlfkjskljflk".toByteArray()
         coEvery {
             journalpostApi.opprett(any(), any())
-        } returns "journalpost123"
+        } returns Journalpost("journalpost123")
 
         testRapid.sendTestMessage(testMessage)
 

@@ -11,9 +11,9 @@ import no.nav.dagpenger.aad.api.ClientCredentialsClient
 class FillagerHttp(engine: HttpClientEngine, private val tokenProvider: ClientCredentialsClient) : Fillager {
     private val client = HttpClient(engine) {}
 
-    override suspend fun hentFil(urn: String): String {
-        val urn = URN.rfc8141().parse(urn)
-        return client.get("http://dp-mellomlagring/v1/mellomlagring/vedlegg/${urn.namespaceSpecificString()}") {
+    override suspend fun hentFil(urn: String): ByteArray {
+        val filId = URN.rfc8141().parse(urn).namespaceSpecificString()
+        return client.get("http://dp-mellomlagring/v1/mellomlagring/vedlegg/$filId") {
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.getAccessToken()}")
         }
     }

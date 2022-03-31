@@ -16,9 +16,11 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import no.nav.dagpenger.aad.api.ClientCredentialsClient
 import no.nav.dagpenger.behov.journalforing.Configuration
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Journalpost
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journalpost.Bruker
+import java.util.Base64
 
 internal class JournalpostApiHttp(
     engine: HttpClientEngine,
@@ -53,18 +55,19 @@ internal class JournalpostApiHttp(
                 dokumenter = dokumenter.map { dokument ->
                     Dokument(
                         dokument.brevkode,
-                        dokument.varianter
-                            .map { variant ->
-                                Dokumentvariant(
-                                    Filtype.valueOf(variant.filtype.toString()),
-                                    Variant.valueOf(variant.format.toString()),
-                                    variant.fysiskDokument
-                                )
-                            }
+                        dokument.varianter.map { variant ->
+                            Dokumentvariant(
+                                Filtype.valueOf(variant.filtype.toString()),
+                                Variant.valueOf(variant.format.toString()),
+                                Base64.getEncoder().encodeToString(variant.fysiskDokument)
+                            )
+                        }
                     )
                 }
             )
-        }.journalpostId
+        }.let {
+            Journalpost(it.journalpostId)
+        }
 
     @Serializable
     private data class Journalpost(
