@@ -1,5 +1,10 @@
 package no.nav.dagpenger.behov.journalforing
 
+import no.nav.dagpenger.behov.journalforing.Configuration.dokarkivTokenProvider
+import no.nav.dagpenger.behov.journalforing.Configuration.mellomlagringTokenProvider
+import no.nav.dagpenger.behov.journalforing.fillager.FillagerHttp
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
+import no.nav.dagpenger.behov.journalforing.tjenester.JournalforingBehovLøser
 import no.nav.helse.rapids_rivers.RapidApplication
 import no.nav.helse.rapids_rivers.RapidsConnection
 
@@ -8,7 +13,13 @@ fun main() {
 }
 
 internal object App : RapidsConnection.StatusListener {
-    private val rapidsConnection = RapidApplication.create(Configuration.config)
+    private val rapidsConnection = RapidApplication.create(Configuration.config).also {
+        JournalforingBehovLøser(
+            it,
+            FillagerHttp(tokenProvider = mellomlagringTokenProvider),
+            JournalpostApiHttp(tokenProvider = dokarkivTokenProvider),
+        )
+    }
 
     init {
         rapidsConnection.register(this)

@@ -4,6 +4,7 @@ import com.natpryce.konfig.Key
 import com.natpryce.konfig.stringType
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.features.defaultRequest
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
@@ -23,7 +24,7 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journ
 import java.util.Base64
 
 internal class JournalpostApiHttp(
-    engine: HttpClientEngine,
+    engine: HttpClientEngine = CIO.create(),
     private val tokenProvider: ClientCredentialsClient,
     private val basePath: String = "/rest/journalpostapi/v1/"
 ) : JournalpostApi {
