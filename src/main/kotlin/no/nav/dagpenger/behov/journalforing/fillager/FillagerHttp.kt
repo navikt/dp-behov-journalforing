@@ -16,7 +16,7 @@ class FillagerHttp(
     private val client = HttpClient(engine) {}
 
     override suspend fun hentFil(urn: FilURN): ByteArray {
-        return client.get("http://dp-mellomlagring/v1/mellomlagring/vedlegg/${urn.fil}") {
+        return client.get("http://dp-mellomlagring/v1/azuread/mellomlagring/vedlegg/${urn.fil}") {
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.getAccessToken()}")
         }
     }
