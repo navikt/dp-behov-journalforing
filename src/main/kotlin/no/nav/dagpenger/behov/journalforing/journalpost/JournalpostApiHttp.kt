@@ -79,7 +79,7 @@ internal class JournalpostApiHttp(
         val behandlingstema: String,
         val bruker: Bruker,
         val dokumenter: List<Dokument>,
-        private val journalpostType: String = "I",
+        private val journalposttype: String = "INNGAAENDE",
         private val tema: String = "DAG",
         private val kanal: String = "NAV_NO",
     ) {
