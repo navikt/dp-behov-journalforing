@@ -17,7 +17,7 @@ internal object App : RapidsConnection.StatusListener {
         JournalforingBehovLøser(
             it,
             FillagerHttp(tokenProvider = mellomlagringTokenProvider),
-            JournalpostApiHttp(tokenProvider = dokarkivTokenProvider),
+            JournalpostApiHttp(tokenProvider = dokarkivTokenProvider, basePath = "https://${Configuration.dokarkivBasePath}/rest/journalpostapi/v1"),
         )
     }
 
