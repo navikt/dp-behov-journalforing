@@ -48,7 +48,8 @@ internal class JournalpostApiHttp(
     }
 
     override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>) =
-        client.post<Resultat>("/$basePath/journalpost") {
+        client.post<Resultat>() {
+            url { encodedPath = "$basePath/journalpost" }
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.getAccessToken()}")
             contentType(ContentType.Application.Json)
             body = Journalpost(
