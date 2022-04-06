@@ -17,7 +17,7 @@ internal object Configuration {
             "KAFKA_CONSUMER_GROUP_ID" to "$appName-v1",
             "KAFKA_RAPID_TOPIC" to "teamdagpenger.rapid.v1",
             "KAFKA_RESET_POLICY" to "latest",
-            "DOKARKIV_SCOPE" to "api://dev-fss.teamdokumenthandtering.dokarkiv/.default",
+            "DOKARKIV_SCOPE" to "api://dev-fss.teamdokumenthandtering.dokarkiv-q1/.default",
             "DOKARKIV_INGRESS" to "dokarkiv.dev-fss-pub.nais.io",
             "MELLOMLAGRING_SCOPE" to "api://dev-gcp.teamdagpenger.dp-mellomlagring/.default",
         )
