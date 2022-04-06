@@ -98,7 +98,7 @@ internal class JournalpostApiHttp(
     @Serializable
     private data class Dokumentvariant(
         val filtype: Filtype,
-        val variant: Variant,
+        val variantformat: Variant,
         val fysiskDokument: String,
     ) {
         enum class Filtype {
