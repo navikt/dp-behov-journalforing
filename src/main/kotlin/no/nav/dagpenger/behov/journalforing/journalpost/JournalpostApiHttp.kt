@@ -10,8 +10,10 @@ import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.request.header
 import io.ktor.client.request.post
-import io.ktor.http.*
-import io.micrometer.core.instrument.binder.jetty.JettyClientTags.host
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.URLProtocol
+import io.ktor.http.contentType
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import no.nav.dagpenger.aad.api.ClientCredentialsClient
@@ -20,13 +22,12 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Journalpo
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journalpost.Bruker
-import org.apache.kafka.common.protocol.Protocol
 import java.util.Base64
 
 internal class JournalpostApiHttp(
     engine: HttpClientEngine = CIO.create(),
     private val tokenProvider: ClientCredentialsClient,
-    private val basePath: String = "/rest/journalpostapi/v1"
+    private val basePath: String = "/rest/journalpostapi/v1",
 ) : JournalpostApi {
     private val client = HttpClient(engine) {
         install(JsonFeature) {
@@ -83,14 +84,14 @@ internal class JournalpostApiHttp(
         @Serializable
         data class Bruker(
             val id: String,
-            private val idType: String = "FNR"
+            private val idType: String = "FNR",
         )
     }
 
     @Serializable
     private data class Dokument(
         val brevkode: String,
-        val varianter: List<Dokumentvariant>
+        val varianter: List<Dokumentvariant>,
     )
 
     @Serializable
@@ -111,7 +112,7 @@ internal class JournalpostApiHttp(
     @Serializable
     private data class Resultat(
         val journalpostId: String,
-        val dokumenter: List<DokumentInfo>
+        val dokumenter: List<DokumentInfo>,
     ) {
         @Serializable
         data class DokumentInfo(val dokumentInfoId: String)
