@@ -48,13 +48,12 @@ internal class JournalpostApiHttp(
     }
 
     override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>) =
-        client.post<Resultat>() {
+        client.post<Resultat> {
             url { encodedPath = "$basePath/journalpost" }
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.getAccessToken()}")
             contentType(ContentType.Application.Json)
             body = Journalpost(
                 avsenderMottaker = Bruker(ident),
-                behandlingstema = "ab0001",
                 bruker = Bruker(ident),
                 dokumenter = dokumenter.map { dokument ->
                     Dokument(
@@ -76,7 +75,6 @@ internal class JournalpostApiHttp(
     @Serializable
     private data class Journalpost(
         val avsenderMottaker: Bruker,
-        val behandlingstema: String,
         val bruker: Bruker,
         val dokumenter: List<Dokument>,
         private val journalposttype: String = "INNGAAENDE",
