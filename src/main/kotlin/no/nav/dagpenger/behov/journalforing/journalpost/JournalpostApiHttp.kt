@@ -92,7 +92,7 @@ internal class JournalpostApiHttp(
     @Serializable
     private data class Dokument(
         val brevkode: String,
-        val varianter: List<Dokumentvariant>,
+        val dokumentvarianter: List<Dokumentvariant>,
     )
 
     @Serializable
