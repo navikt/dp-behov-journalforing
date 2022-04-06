@@ -27,7 +27,7 @@ import java.util.Base64
 internal class JournalpostApiHttp(
     engine: HttpClientEngine = CIO.create(),
     private val tokenProvider: ClientCredentialsClient,
-    private val basePath: String = "/rest/journalpostapi/v1",
+    private val basePath: String = "rest/journalpostapi/v1",
 ) : JournalpostApi {
     private val client = HttpClient(engine) {
         install(JsonFeature) {
