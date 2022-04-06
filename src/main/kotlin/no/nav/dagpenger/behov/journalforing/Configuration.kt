@@ -54,6 +54,4 @@ internal object Configuration {
     val config: Map<String, String> = properties.list().reversed().fold(emptyMap()) { map, pair ->
         map + pair.second
     }
-
-    val dokarkivBasePath: String = properties[Key("DOKARKIV_INGRESS", stringType)]
 }
