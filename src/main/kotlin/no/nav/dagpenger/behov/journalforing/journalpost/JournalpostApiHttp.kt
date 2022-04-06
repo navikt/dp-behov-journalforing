@@ -10,9 +10,8 @@ import io.ktor.client.features.json.JsonFeature
 import io.ktor.client.features.json.serializer.KotlinxSerializer
 import io.ktor.client.request.header
 import io.ktor.client.request.post
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.contentType
+import io.ktor.http.*
+import io.micrometer.core.instrument.binder.jetty.JettyClientTags.host
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import no.nav.dagpenger.aad.api.ClientCredentialsClient
@@ -21,6 +20,7 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Journalpo
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journalpost.Bruker
+import org.apache.kafka.common.protocol.Protocol
 import java.util.Base64
 
 internal class JournalpostApiHttp(
@@ -40,6 +40,7 @@ internal class JournalpostApiHttp(
         defaultRequest {
             header("X-Nav-Consumer", "dp-behov-journalforing")
             url {
+                protocol = URLProtocol.HTTPS
                 host = Configuration.properties[Key("DOKARKIV_INGRESS", stringType)]
             }
         }
