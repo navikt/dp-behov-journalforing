@@ -9,6 +9,7 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
+import no.nav.dagpenger.behov.journalforing.soknad.SoknadHttp
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -17,7 +18,8 @@ import no.nav.helse.rapids_rivers.River
 internal class JournalforingBehovLøser(
     rapidsConnection: RapidsConnection,
     private val fillager: Fillager,
-    private val journalpostApi: JournalpostApi
+    private val journalpostApi: JournalpostApi,
+    private val faktahenter: SoknadHttp
 ) : River.PacketListener {
     private companion object {
         private val logg = KotlinLogging.logger {}
@@ -54,6 +56,8 @@ internal class JournalforingBehovLøser(
                             Format.valueOf(variant["format"].asText()),
                             fillager.hentFil(FilURN(variant["urn"].asText())),
                         )
+                    }.toMutableList().also {
+                        it.add(faktahenter.hentJsonSøknad(søknadId))
                     }
                 )
             }

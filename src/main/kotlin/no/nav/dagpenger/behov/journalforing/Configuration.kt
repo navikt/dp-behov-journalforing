@@ -20,12 +20,14 @@ internal object Configuration {
             "DOKARKIV_SCOPE" to "api://dev-fss.teamdokumenthandtering.dokarkiv-q1/.default",
             "DOKARKIV_INGRESS" to "dokarkiv.dev-fss-pub.nais.io",
             "MELLOMLAGRING_SCOPE" to "api://dev-gcp.teamdagpenger.dp-mellomlagring/.default",
+            "DP_SOKNAD_SCOPE" to "api://dev-gcp.teamdagpenger.dp-soknad/.default"
         )
     )
     private val prodProperties = ConfigurationMap(
         mapOf(
             "DOKARKIV_SCOPE" to "api://prod-fss.teamdokumenthandtering.dokarkiv/.default",
             "MELLOMLAGRING_SCOPE" to "api://prod-gcp.teamdagpenger.dp-mellomlagring/.default",
+            "DP_SOKNAD_SCOPE" to "api://prod-gcp.teamdagpenger.dp-soknad/.default"
         )
     )
     val properties: Configuration by lazy {
@@ -47,6 +49,13 @@ internal object Configuration {
         ClientCredentialsClient(properties) {
             scope {
                 add(properties[Key("MELLOMLAGRING_SCOPE", stringType)])
+            }
+        }
+    }
+    val dpSøknadTokenProvider by lazy {
+        ClientCredentialsClient(properties) {
+            scope {
+                add(properties[Key("DP_SOKNAD_SCOPE", stringType)])
             }
         }
     }
