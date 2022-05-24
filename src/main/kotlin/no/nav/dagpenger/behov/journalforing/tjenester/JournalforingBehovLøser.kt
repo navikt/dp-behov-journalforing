@@ -21,6 +21,7 @@ internal class JournalforingBehovLøser(
 ) : River.PacketListener {
     private companion object {
         private val logg = KotlinLogging.logger {}
+        private val skipSet = setOf("50a844a6-2458-42c6-bc0d-600bc920c108")
     }
 
     init {
@@ -40,9 +41,11 @@ internal class JournalforingBehovLøser(
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
+        val søknadId = packet["søknad_uuid"].asText()
+        logg.info("Mottok behov for ny journalpost med uuid $søknadId")
+        if (skipSet.contains(søknadId)) return
         runBlocking {
-            logg.info("Mottok behov for ny journalpost med uuid ${packet["søknad_uuid"].asText()}")
-            val dokumenter = packet["dokumenter"].map { dokument ->
+            val dokumenter: List<Dokument> = packet["dokumenter"].map { dokument ->
                 Dokument(
                     dokument["brevkode"].asText(),
                     dokument["varianter"].map { variant ->
@@ -53,6 +56,8 @@ internal class JournalforingBehovLøser(
                         )
                     }
                 )
+            }.also {
+                logg.info { "Behandle dokumenter for $søknadId: $it" }
             }
             val journalpost = journalpostApi.opprett(
                 ident = packet["ident"].asText(), dokumenter = dokumenter
