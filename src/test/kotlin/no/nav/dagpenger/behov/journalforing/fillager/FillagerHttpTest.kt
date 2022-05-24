@@ -6,15 +6,11 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
-import io.mockk.coEvery
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import no.nav.dagpenger.aad.api.ClientCredentialsClient
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class FillagerHttpTest {
-    private val tokenProvider = mockk<ClientCredentialsClient>()
 
     @Test
     fun `svarer med innholdet i fila`() {
@@ -26,10 +22,7 @@ class FillagerHttpTest {
                     headers = headersOf(HttpHeaders.ContentType, "application/json")
                 )
             }
-            coEvery {
-                tokenProvider.getAccessToken()
-            } returns "token"
-            val apiClient = FillagerHttp(mockEngine, tokenProvider)
+            val apiClient = FillagerHttp(mockEngine) { "token" }
 
             assertEquals(9, apiClient.hentFil(FilURN("urn:vedlegg:id/fil")).size)
             assertEquals("Bearer token", mockEngine.requestHistory.first().headers[HttpHeaders.Authorization])

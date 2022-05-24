@@ -43,7 +43,8 @@ object Dagpenger {
             const val client = "com.github.navikt.dp-biblioteker:soap-client:$version"
         }
     }
-    const val Grunnbeløp = "com.github.navikt:dp-grunnbelop:2021.06.25-11.51.bdc7c826c404"
+
+    const val Grunnbeløp = "com.github.navikt:dp-grunnbelop:2022.05.20-09.36.a361a7eb490e"
     const val Streams = "com.github.navikt:dagpenger-streams:2021.12.29-13.08.7857ff52b457"
     const val Events = "com.github.navikt:dagpenger-events:2021.12.14-09.45.e24e8c813b27"
 }
@@ -163,6 +164,16 @@ object Ktor {
     fun library(name: String) = "io.ktor:ktor-$name:$version"
 }
 
+object Ktor2 {
+    const val version = "2.0.1"
+    object Client {
+        fun library(name: String) = "io.ktor:ktor-client-$name:$version"
+    }
+    object Server {
+        fun library(name: String) = "io.ktor:ktor-server-$name:$version"
+    }
+}
+
 object Log4j2 {
     const val version = "2.17.0"
     const val api = "org.apache.logging.log4j:log4j-api:$version"
@@ -216,7 +227,7 @@ object Prometheus {
     }
 }
 
-const val RapidAndRivers = "com.github.navikt:rapids-and-rivers:2022.03.25-09.17.0628678a7192"
+const val RapidAndRivers = "com.github.navikt:rapids-and-rivers:2022.05.24-08.59.697523565778"
 
 object Slf4j {
     const val version = "1.7.25"

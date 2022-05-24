@@ -1,22 +1,23 @@
 package no.nav.dagpenger.behov.journalforing.journalpost
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.stringType
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.features.defaultRequest
-import io.ktor.client.features.json.JsonFeature
-import io.ktor.client.features.json.serializer.KotlinxSerializer
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import no.nav.dagpenger.aad.api.ClientCredentialsClient
+import io.ktor.http.encodedPath
+import io.ktor.serialization.jackson.jackson
 import no.nav.dagpenger.behov.journalforing.Configuration
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Journalpost
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Filtype
@@ -26,17 +27,14 @@ import java.util.Base64
 
 internal class JournalpostApiHttp(
     engine: HttpClientEngine = CIO.create(),
-    private val tokenProvider: ClientCredentialsClient,
+    private val tokenProvider: () -> String,
     private val basePath: String = "rest/journalpostapi/v1",
 ) : JournalpostApi {
     private val client = HttpClient(engine) {
-        install(JsonFeature) {
-            serializer = KotlinxSerializer(
-                Json {
-                    ignoreUnknownKeys = true
-                    encodeDefaults = true
-                }
-            )
+        install(ContentNegotiation) {
+            jackson {
+                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            }
         }
         defaultRequest {
             header("X-Nav-Consumer", "dp-behov-journalforing")
@@ -48,31 +46,32 @@ internal class JournalpostApiHttp(
     }
 
     override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>) =
-        client.post<Resultat> {
+        client.post() {
             url { encodedPath = "$basePath/journalpost" }
-            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.getAccessToken()}")
+            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
             contentType(ContentType.Application.Json)
-            body = Journalpost(
-                avsenderMottaker = Bruker(ident),
-                bruker = Bruker(ident),
-                dokumenter = dokumenter.map { dokument ->
-                    Dokument(
-                        dokument.brevkode,
-                        dokument.varianter.map { variant ->
-                            Dokumentvariant(
-                                Filtype.valueOf(variant.filtype.toString()),
-                                Variant.valueOf(variant.format.toString()),
-                                Base64.getEncoder().encodeToString(variant.fysiskDokument)
-                            )
-                        }
-                    )
-                }
+            setBody(
+                Journalpost(
+                    avsenderMottaker = Bruker(ident),
+                    bruker = Bruker(ident),
+                    dokumenter = dokumenter.map { dokument ->
+                        Dokument(
+                            dokument.brevkode,
+                            dokument.varianter.map { variant ->
+                                Dokumentvariant(
+                                    Filtype.valueOf(variant.filtype.toString()),
+                                    Variant.valueOf(variant.format.toString()),
+                                    Base64.getEncoder().encodeToString(variant.fysiskDokument)
+                                )
+                            }
+                        )
+                    }
+                )
             )
-        }.let {
+        }.body<Resultat>().let {
             Journalpost(it.journalpostId)
         }
 
-    @Serializable
     private data class Journalpost(
         val avsenderMottaker: Bruker,
         val bruker: Bruker,
@@ -81,20 +80,17 @@ internal class JournalpostApiHttp(
         private val tema: String = "DAG",
         private val kanal: String = "NAV_NO",
     ) {
-        @Serializable
         data class Bruker(
             val id: String,
             private val idType: String = "FNR",
         )
     }
 
-    @Serializable
     private data class Dokument(
         val brevkode: String,
         val dokumentvarianter: List<Dokumentvariant>,
     )
 
-    @Serializable
     private data class Dokumentvariant(
         val filtype: Filtype,
         val variantformat: Variant,
@@ -109,12 +105,10 @@ internal class JournalpostApiHttp(
         }
     }
 
-    @Serializable
     private data class Resultat(
         val journalpostId: String,
         val dokumenter: List<DokumentInfo>,
     ) {
-        @Serializable
         data class DokumentInfo(val dokumentInfoId: String)
     }
 }

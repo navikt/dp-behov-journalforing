@@ -24,22 +24,22 @@ kotlin {
 }
 
 dependencies {
-    val ktor_version = "1.6.8"
     implementation(RapidAndRivers)
 
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
-    implementation("io.ktor:ktor-client-core:$ktor_version")
-    implementation("io.ktor:ktor-client-cio:$ktor_version")
-    implementation("io.ktor:ktor-client-serialization:$ktor_version")
-    implementation("com.github.navikt.dp-biblioteker:aad-klient:2021.04.09-14.32.088c6dc10b69")
+    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.05.02-14.21.f4e9d6da3fa8")
+    implementation(Ktor2.Client.library("core"))
+    implementation(Ktor2.Client.library("cio"))
+    implementation(Ktor2.Client.library("content-negotiation"))
+    implementation("io.ktor:ktor-serialization-jackson:${Ktor2.version}")
 
     implementation("de.slub-dresden:urnlib:2.0.1")
 
     implementation(Mockk.mockk)
 
     testImplementation(kotlin("test"))
-    testImplementation("io.ktor:ktor-client-mock:$ktor_version")
+    testImplementation(Ktor2.Client.library("mock"))
 }
 
 tasks.withType<Test> {

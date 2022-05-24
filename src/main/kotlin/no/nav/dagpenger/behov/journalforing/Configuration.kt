@@ -7,7 +7,9 @@ import com.natpryce.konfig.EnvironmentVariables
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.overriding
 import com.natpryce.konfig.stringType
-import no.nav.dagpenger.aad.api.ClientCredentialsClient
+import kotlinx.coroutines.runBlocking
+import no.nav.dagpenger.oauth2.CachedOauth2Client
+import no.nav.dagpenger.oauth2.OAuth2Config
 
 internal object Configuration {
     private const val appName = "dp-behov-journalforing"
@@ -38,29 +40,29 @@ internal object Configuration {
         }
     }
     val dokarkivTokenProvider by lazy {
-        ClientCredentialsClient(properties) {
-            scope {
-                add(properties[Key("DOKARKIV_SCOPE", stringType)])
-            }
-        }
+        azureAdTokenSupplier(properties[Key("DOKARKIV_SCOPE", stringType)])
     }
 
     val mellomlagringTokenProvider by lazy {
-        ClientCredentialsClient(properties) {
-            scope {
-                add(properties[Key("MELLOMLAGRING_SCOPE", stringType)])
-            }
-        }
+        azureAdTokenSupplier(properties[Key("MELLOMLAGRING_SCOPE", stringType)])
     }
     val dpSøknadTokenProvider by lazy {
-        ClientCredentialsClient(properties) {
-            scope {
-                add(properties[Key("DP_SOKNAD_SCOPE", stringType)])
-            }
-        }
+        azureAdTokenSupplier(properties[Key("DP_SOKNAD_SCOPE", stringType)])
     }
 
     val config: Map<String, String> = properties.list().reversed().fold(emptyMap()) { map, pair ->
         map + pair.second
+    }
+
+    private val azureAdClient: CachedOauth2Client by lazy {
+        val azureAdConfig = OAuth2Config.AzureAd(properties)
+        CachedOauth2Client(
+            tokenEndpointUrl = azureAdConfig.tokenEndpointUrl,
+            authType = azureAdConfig.clientSecret()
+        )
+    }
+
+    private fun azureAdTokenSupplier(scope: String): () -> String = {
+        runBlocking { azureAdClient.clientCredentials(scope).accessToken }
     }
 }
