@@ -56,8 +56,6 @@ internal class JournalforingBehovLøser(
                         )
                     }
                 )
-            }.also {
-                logg.info { "Behandle dokumenter for $søknadId: $it" }
             }
             val journalpost = journalpostApi.opprett(
                 ident = packet["ident"].asText(), dokumenter = dokumenter
