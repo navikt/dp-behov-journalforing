@@ -24,11 +24,11 @@ kotlin {
 }
 
 dependencies {
-    implementation(RapidAndRivers)
+    implementation(RapidAndRiversKtor2)
 
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
-    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.05.02-14.21.f4e9d6da3fa8")
+    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.05.30-09.37.623ee13a49dd")
     implementation(Ktor2.Client.library("core"))
     implementation(Ktor2.Client.library("cio"))
     implementation(Ktor2.Client.library("content-negotiation"))

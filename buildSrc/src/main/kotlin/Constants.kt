@@ -165,7 +165,7 @@ object Ktor {
 }
 
 object Ktor2 {
-    const val version = "2.0.1"
+    const val version = "2.0.2"
     object Client {
         fun library(name: String) = "io.ktor:ktor-client-$name:$version"
     }
@@ -227,7 +227,8 @@ object Prometheus {
     }
 }
 
-const val RapidAndRivers = "com.github.navikt:rapids-and-rivers:2022.05.24-08.59.697523565778"
+const val RapidAndRivers = "com.github.navikt:rapids-and-rivers:2022.03.25-09.17.0628678a7192"
+const val RapidAndRiversKtor2 = "com.github.navikt:rapids-and-rivers:2022.05.30-08.14.d0eae6419dd7"
 
 object Slf4j {
     const val version = "1.7.25"
