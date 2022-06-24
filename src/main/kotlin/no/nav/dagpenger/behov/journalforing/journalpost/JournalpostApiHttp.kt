@@ -81,13 +81,13 @@ internal class JournalpostApiHttp(
         val avsenderMottaker: Bruker,
         val bruker: Bruker,
         val dokumenter: List<Dokument>,
-        private val journalposttype: String = "INNGAAENDE",
-        private val tema: String = "DAG",
-        private val kanal: String = "NAV_NO",
+        val journalposttype: String = "INNGAAENDE",
+        val tema: String = "DAG",
+        val kanal: String = "NAV_NO",
     ) {
         data class Bruker(
             val id: String,
-            private val idType: String = "FNR",
+            val idType: String = "FNR",
         )
     }
 
