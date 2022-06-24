@@ -1,5 +1,7 @@
 package no.nav.dagpenger.behov.journalforing.journalpost
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.stringType
@@ -50,44 +52,45 @@ internal class JournalpostApiHttp(
         }
     }
 
-    override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>) =
-        client.post {
-            url { encodedPath = "$basePath/journalpost" }
-            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-            contentType(ContentType.Application.Json)
-            setBody(
-                Journalpost(
-                    avsenderMottaker = Bruker(ident),
-                    bruker = Bruker(ident),
-                    dokumenter = dokumenter.map { dokument ->
-                        Dokument(
-                            dokument.brevkode,
-                            dokument.varianter.map { variant ->
-                                Dokumentvariant(
-                                    Filtype.valueOf(variant.filtype.toString()),
-                                    Variant.valueOf(variant.format.toString()),
-                                    Base64.getEncoder().encodeToString(variant.fysiskDokument)
-                                )
-                            }
-                        )
-                    }
-                )
+    override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>) = client.post {
+        url { encodedPath = "$basePath/journalpost" }
+        header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
+        contentType(ContentType.Application.Json)
+        setBody(
+            Journalpost(
+                avsenderMottaker = Bruker(ident),
+                bruker = Bruker(ident),
+                dokumenter = dokumenter.map { dokument ->
+                    Dokument(
+                        dokument.brevkode,
+                        dokument.varianter.map { variant ->
+                            Dokumentvariant(
+                                Filtype.valueOf(variant.filtype.toString()),
+                                Variant.valueOf(variant.format.toString()),
+                                Base64.getEncoder().encodeToString(variant.fysiskDokument)
+                            )
+                        }
+                    )
+                }
             )
-        }.body<Resultat>().let {
-            Journalpost(it.journalpostId)
-        }
+        )
+    }.body<Resultat>().let {
+        Journalpost(it.journalpostId)
+    }
 
+    @JsonAutoDetect(fieldVisibility = Visibility.ANY)
     private data class Journalpost(
         val avsenderMottaker: Bruker,
         val bruker: Bruker,
         val dokumenter: List<Dokument>,
-        val journalposttype: String = "INNGAAENDE",
-        val tema: String = "DAG",
-        val kanal: String = "NAV_NO",
+        private val journalposttype: String = "INNGAAENDE",
+        private val tema: String = "DAG",
+        private val kanal: String = "NAV_NO",
     ) {
+        @JsonAutoDetect(fieldVisibility = Visibility.ANY)
         data class Bruker(
             val id: String,
-            val idType: String = "FNR",
+            private val idType: String = "FNR",
         )
     }
 
