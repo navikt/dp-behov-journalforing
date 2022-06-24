@@ -6,6 +6,10 @@ Gradle brukes som byggverktøy og er bundlet inn.
 
 `./gradlew build`
 
+## Joark utvikler dokumentasjon
+
+[Link](https://confluence.adeo.no/display/BOA/Utviklerdokumentasjon+-+start+her)
+
 # Henvendelser
 
 Spørsmål knyttet til koden eller prosjektet kan rettes mot:
