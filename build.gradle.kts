@@ -32,6 +32,7 @@ dependencies {
     implementation(Ktor2.Client.library("core"))
     implementation(Ktor2.Client.library("cio"))
     implementation(Ktor2.Client.library("content-negotiation"))
+    implementation(Ktor2.Client.library("logging"))
     implementation("io.ktor:ktor-serialization-jackson:${Ktor2.version}")
 
     implementation("de.slub-dresden:urnlib:2.0.1")

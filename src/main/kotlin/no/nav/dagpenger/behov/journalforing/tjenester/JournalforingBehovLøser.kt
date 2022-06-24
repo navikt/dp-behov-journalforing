@@ -2,6 +2,7 @@ package no.nav.dagpenger.behov.journalforing.tjenester
 
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import mu.withLoggingContext
 import no.nav.dagpenger.behov.journalforing.fillager.FilURN
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
@@ -14,6 +15,8 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+
+private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 internal class JournalforingBehovLøser(
     rapidsConnection: RapidsConnection,
@@ -44,30 +47,35 @@ internal class JournalforingBehovLøser(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadId = packet["søknad_uuid"].asText()
-        logg.info("Mottok behov for ny journalpost med uuid $søknadId")
-        if (skipSet.contains(søknadId)) return
-        runBlocking {
-            val dokumenter: List<Dokument> = packet["dokumenter"].map { dokument ->
-                Dokument(
-                    dokument["brevkode"].asText(),
-                    dokument["varianter"].map { variant ->
-                        Variant(
-                            Filtype.valueOf(variant["type"].asText()),
-                            Format.valueOf(variant["format"].asText()),
-                            fillager.hentFil(FilURN(variant["urn"].asText())),
-                        )
-                    }.toMutableList().also {
-                        it.add(faktahenter.hentJsonSøknad(søknadId))
-                    }
+        withLoggingContext(
+            "søknad_uuid" to søknadId
+        ) {
+            logg.info("Mottok behov for ny journalpost med uuid $søknadId")
+            if (skipSet.contains(søknadId)) return
+            runBlocking {
+                val dokumenter: List<Dokument> = packet["dokumenter"].map { dokument ->
+                    Dokument(
+                        dokument["brevkode"].asText(),
+                        dokument["varianter"].map { variant ->
+                            Variant(
+                                Filtype.valueOf(variant["type"].asText()),
+                                Format.valueOf(variant["format"].asText()),
+                                fillager.hentFil(FilURN(variant["urn"].asText())),
+                            )
+                        }.toMutableList().also {
+                            it.add(faktahenter.hentJsonSøknad(søknadId))
+                        }
+                    )
+                }
+                sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
+                val journalpost = journalpostApi.opprett(
+                    ident = packet["ident"].asText(), dokumenter = dokumenter
                 )
+                packet["@løsning"] = mapOf(
+                    "NyJournalpost" to journalpost.id
+                )
+                context.publish(packet.toJson())
             }
-            val journalpost = journalpostApi.opprett(
-                ident = packet["ident"].asText(), dokumenter = dokumenter
-            )
-            packet["@løsning"] = mapOf(
-                "NyJournalpost" to journalpost.id
-            )
-            context.publish(packet.toJson())
         }
     }
 }

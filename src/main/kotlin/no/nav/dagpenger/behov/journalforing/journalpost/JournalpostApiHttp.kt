@@ -9,6 +9,8 @@ import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -36,6 +38,9 @@ internal class JournalpostApiHttp(
                 configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             }
         }
+        install(Logging) {
+            level = LogLevel.HEADERS
+        }
         defaultRequest {
             header("X-Nav-Consumer", "dp-behov-journalforing")
             url {
@@ -46,7 +51,7 @@ internal class JournalpostApiHttp(
     }
 
     override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>) =
-        client.post() {
+        client.post {
             url { encodedPath = "$basePath/journalpost" }
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
             contentType(ContentType.Application.Json)
