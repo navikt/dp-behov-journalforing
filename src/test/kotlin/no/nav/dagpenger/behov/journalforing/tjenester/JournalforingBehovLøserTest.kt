@@ -25,7 +25,7 @@ internal class JournalforingBehovLøserTest {
     @Test
     fun `løser behov for å opprette ny journalpost`() {
         coEvery {
-            fillager.hentFil(any())
+            fillager.hentFil(any(), any())
         } returns "asdlfkjskljflk".toByteArray()
         coEvery {
             journalpostApi.opprett(any(), any())

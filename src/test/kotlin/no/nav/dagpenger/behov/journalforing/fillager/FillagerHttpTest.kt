@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class FillagerHttpTest {
+    private val testFnr = "1654321876"
 
     @Test
     fun `svarer med innholdet i fila`() {
@@ -24,8 +25,9 @@ class FillagerHttpTest {
             }
             val apiClient = FillagerHttp(mockEngine) { "token" }
 
-            assertEquals(9, apiClient.hentFil(FilURN("urn:vedlegg:id/fil")).size)
+            assertEquals(9, apiClient.hentFil(FilURN("urn:vedlegg:id/fil"), testFnr).size)
             assertEquals("Bearer token", mockEngine.requestHistory.first().headers[HttpHeaders.Authorization])
+            assertEquals(testFnr, mockEngine.requestHistory.first().headers["X-Eier"])
         }
     }
 }

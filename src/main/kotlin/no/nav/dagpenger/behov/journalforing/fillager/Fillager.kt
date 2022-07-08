@@ -3,7 +3,7 @@ package no.nav.dagpenger.behov.journalforing.fillager
 import de.slub.urn.URN
 
 interface Fillager {
-    suspend fun hentFil(urn: FilURN): ByteArray
+    suspend fun hentFil(urn: FilURN, eier: String): ByteArray
 }
 
 class FilURN(urn: String) {

@@ -47,6 +47,7 @@ internal class JournalforingBehovLøser(
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadId = packet["søknad_uuid"].asText()
+        val ident = packet["ident"].asText()
         withLoggingContext(
             "søknad_uuid" to søknadId
         ) {
@@ -60,7 +61,7 @@ internal class JournalforingBehovLøser(
                             Variant(
                                 Filtype.valueOf(variant["type"].asText()),
                                 Format.valueOf(variant["format"].asText()),
-                                fillager.hentFil(FilURN(variant["urn"].asText())),
+                                fillager.hentFil(FilURN(variant["urn"].asText()), ident),
                             )
                         }.toMutableList().also {
                             it.add(faktahenter.hentJsonSøknad(søknadId))
@@ -69,7 +70,7 @@ internal class JournalforingBehovLøser(
                 }
                 sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
                 val journalpost = journalpostApi.opprett(
-                    ident = packet["ident"].asText(), dokumenter = dokumenter
+                    ident = ident, dokumenter = dokumenter
                 )
                 packet["@løsning"] = mapOf(
                     "NyJournalpost" to journalpost.id
