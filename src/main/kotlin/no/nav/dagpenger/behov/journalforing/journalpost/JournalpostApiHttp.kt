@@ -39,7 +39,7 @@ internal class JournalpostApiHttp(
             }
         }
         install(Logging) {
-            level = LogLevel.ALL
+            level = LogLevel.INFO
         }
         defaultRequest {
             header("X-Nav-Consumer", "dp-behov-journalforing")
