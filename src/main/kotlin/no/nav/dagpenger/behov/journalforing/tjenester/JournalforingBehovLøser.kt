@@ -49,7 +49,7 @@ internal class JournalforingBehovLøser(
         val søknadId = packet["søknad_uuid"].asText()
         val ident = packet["ident"].asText()
         withLoggingContext(
-            "søknad_uuid" to søknadId
+            "søknadId" to søknadId
         ) {
             logg.info("Mottok behov for ny journalpost med uuid $søknadId")
             if (skipSet.contains(søknadId)) return
@@ -61,7 +61,7 @@ internal class JournalforingBehovLøser(
                             Variant(
                                 Filtype.valueOf(variant["type"].asText()),
                                 Format.valueOf(variant["format"].asText()),
-                                fillager.hentFil(FilURN(variant["urn"].asText()), ident),
+                                fillager.hentFil(FilURN(variant["urn"].asText()), ident)
                             )
                         }.toMutableList().also {
                             it.add(faktahenter.hentJsonSøknad(søknadId))
@@ -70,7 +70,8 @@ internal class JournalforingBehovLøser(
                 }
                 sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
                 val journalpost = journalpostApi.opprett(
-                    ident = ident, dokumenter = dokumenter
+                    ident = ident,
+                    dokumenter = dokumenter
                 )
                 packet["@løsning"] = mapOf(
                     "NyJournalpost" to journalpost.id
