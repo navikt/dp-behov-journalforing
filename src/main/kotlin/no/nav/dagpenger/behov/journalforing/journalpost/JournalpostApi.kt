@@ -17,6 +17,8 @@ internal interface JournalpostApi {
         val format: Format,
         val fysiskDokument: ByteArray,
     ) {
+        override fun toString() = "Variant(filtype=$filtype, format=$format)"
+
         enum class Filtype {
             PDF, PDFA, JPEG, TIFF, JSON, PNG,
         }
