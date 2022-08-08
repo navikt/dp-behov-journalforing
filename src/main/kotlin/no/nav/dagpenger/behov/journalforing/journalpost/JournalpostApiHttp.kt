@@ -9,6 +9,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpResponseValidator
+import io.ktor.client.plugins.ResponseException
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.LogLevel
@@ -16,18 +18,22 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.encodedPath
 import io.ktor.serialization.jackson.jackson
+import mu.KotlinLogging
 import no.nav.dagpenger.behov.journalforing.Configuration
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Journalpost
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journalpost.Bruker
 import java.util.Base64
+
+private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 internal class JournalpostApiHttp(
     engine: HttpClientEngine = CIO.create(),
@@ -36,6 +42,15 @@ internal class JournalpostApiHttp(
 ) : JournalpostApi {
     private val client = HttpClient(engine) {
         expectSuccess = true
+        HttpResponseValidator {
+            handleResponseExceptionWithRequest { exception, request ->
+                val responseException = exception as? ResponseException ?: return@handleResponseExceptionWithRequest
+                val exceptionResponse = exception.response
+                val exceptionResponseText = exceptionResponse.bodyAsText()
+                sikkerlogg.error(responseException) { "Kall mot journalpostapi feilet. Response body\n$exceptionResponseText" }
+                throw responseException
+            }
+        }
         install(ContentNegotiation) {
             jackson {
                 configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
