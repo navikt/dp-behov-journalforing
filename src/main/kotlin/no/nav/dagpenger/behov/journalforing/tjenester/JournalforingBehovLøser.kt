@@ -1,6 +1,7 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.slf4j.MDCContext
 import mu.KotlinLogging
 import mu.withLoggingContext
 import no.nav.dagpenger.behov.journalforing.fillager.FilURN
@@ -53,7 +54,7 @@ internal class JournalforingBehovLøser(
         ) {
             logg.info("Mottok behov for ny journalpost med uuid $søknadId")
             if (skipSet.contains(søknadId)) return
-            runBlocking {
+            runBlocking(MDCContext()) {
                 val dokumenter: List<Dokument> = packet["dokumenter"].map { dokument ->
                     Dokument(
                         dokument["brevkode"].asText(),
