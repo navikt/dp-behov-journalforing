@@ -1,5 +1,6 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
+import com.fasterxml.jackson.databind.JsonNode
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import mu.KotlinLogging
@@ -25,26 +26,30 @@ internal class JournalforingBehovLøser(
     private val journalpostApi: JournalpostApi,
     private val faktahenter: SoknadHttp
 ) : River.PacketListener {
-    private companion object {
+    internal companion object {
         private val logg = KotlinLogging.logger {}
         private val skipSet = setOf("50a844a6-2458-42c6-bc0d-600bc920c108", "f6224540-c224-4631-8e15-e43e03d53a0e")
+        internal const val NY_JOURNAL_POST = "NyJournalpost"
     }
 
     init {
         River(rapidsConnection).apply {
-            validate { it.demandAll("@behov", listOf("NyJournalpost")) }
+            validate { it.demandAll("@behov", listOf(NY_JOURNAL_POST)) }
             validate { it.rejectKey("@løsning") }
-            validate { it.requireKey("søknad_uuid", "ident") }
-            validate {
-                it.requireArray("dokumenter") {
-                    requireKey("brevkode")
-                    requireArray("varianter") {
-                        requireKey("type", "urn", "format")
-                    }
-                }
-            }
+            validate { it.requireKey("søknad_uuid", "ident", NY_JOURNAL_POST) }
         }.register(this)
     }
+
+    private suspend fun JsonNode.toDokument(ident: String) = Dokument(
+        brevkode = this["brevkode"].asText(),
+        varianter = this["varianter"].map { variant ->
+            Variant(
+                filtype = Filtype.valueOf(variant["type"].asText()),
+                format = Format.valueOf(variant["variant"].asText()),
+                fysiskDokument = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
+            )
+        }
+    )
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadId = packet["søknad_uuid"].asText()
@@ -55,27 +60,21 @@ internal class JournalforingBehovLøser(
             logg.info("Mottok behov for ny journalpost med uuid $søknadId")
             if (skipSet.contains(søknadId)) return
             runBlocking(MDCContext()) {
-                val dokumenter: List<Dokument> = packet["dokumenter"].map { dokument ->
-                    Dokument(
-                        dokument["brevkode"].asText(),
-                        dokument["varianter"].map { variant ->
-                            Variant(
-                                Filtype.valueOf(variant["type"].asText()),
-                                Format.valueOf(variant["format"].asText()),
-                                fillager.hentFil(FilURN(variant["urn"].asText()), ident)
-                            )
-                        }.toMutableList().also {
-                            it.add(faktahenter.hentJsonSøknad(søknadId))
-                        }
-                    )
+                val hovedDokument = packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
+                    val dokument = jsonNode.toDokument(ident)
+                    dokument.copy(varianter = dokument.varianter + faktahenter.hentJsonSøknad(søknadId))
                 }
+
+                val dokumenter: List<Dokument> =
+                    listOf(hovedDokument) + packet[NY_JOURNAL_POST]["dokumenter"].map { it.toDokument(ident) }
+
                 sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
                 val journalpost = journalpostApi.opprett(
                     ident = ident,
                     dokumenter = dokumenter
                 )
                 packet["@løsning"] = mapOf(
-                    "NyJournalpost" to journalpost.id
+                    NY_JOURNAL_POST to journalpost.id
                 )
                 context.publish(packet.toJson())
             }

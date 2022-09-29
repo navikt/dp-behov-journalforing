@@ -43,7 +43,7 @@ internal class JournalpostApiHttp(
     private val client = HttpClient(engine) {
         expectSuccess = true
         HttpResponseValidator {
-            handleResponseExceptionWithRequest { exception, request ->
+            handleResponseExceptionWithRequest { exception, _ ->
                 val responseException = exception as? ResponseException ?: return@handleResponseExceptionWithRequest
                 val exceptionResponse = exception.response
                 val exceptionResponseText = exceptionResponse.bodyAsText()
