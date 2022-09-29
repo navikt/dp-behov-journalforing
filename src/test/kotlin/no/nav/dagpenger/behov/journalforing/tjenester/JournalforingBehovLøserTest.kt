@@ -3,6 +3,7 @@ package no.nav.dagpenger.behov.journalforing.tjenester
 import io.ktor.utils.io.core.toByteArray
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.slot
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Journalpost
@@ -24,16 +25,34 @@ internal class JournalforingBehovLøserTest {
 
     @Test
     fun `løser behov for å opprette ny journalpost`() {
+        val sendteDokumenter = slot<List<JournalpostApi.Dokument>>()
+
         coEvery {
             fillager.hentFil(any(), any())
         } returns "asdlfkjskljflk".toByteArray()
         coEvery {
-            journalpostApi.opprett(any(), any())
+            journalpostApi.opprett(any(), capture(sendteDokumenter))
         } returns Journalpost("journalpost123")
         coEvery {
             faktahenter.hentJsonSøknad(any())
         } returns JournalpostApi.Variant(JSON, Format.ORIGINAL, "{}".toByteArray())
         testRapid.sendTestMessage(testMessage)
+
+        assertEquals(3, sendteDokumenter.captured.size)
+        with(sendteDokumenter.captured[0]) {
+            assertEquals(this.brevkode, "NAV 04.04-01")
+            assertEquals(this.varianter.size, 3)
+        }
+
+        with(sendteDokumenter.captured[1]) {
+            assertEquals(this.brevkode, "DOK1")
+            assertEquals(this.varianter.size, 2)
+        }
+
+        with(sendteDokumenter.captured[2]) {
+            assertEquals(this.brevkode, "DOK2")
+            assertEquals(this.varianter.size, 1)
+        }
 
         with(testRapid.inspektør) {
             assertEquals(1, size)
@@ -44,26 +63,73 @@ internal class JournalforingBehovLøserTest {
 
 @Language("JSON")
 val testMessage = """{
+  "@event_name": "behov",
+  "@behovId": "34f6743c-bd9a-4902-ae68-fae0171b1e68",
   "@behov": [
     "NyJournalpost"
   ],
-  "søknad_uuid": "hasfakfhajkfhkasjfhk",
-  "ident": "12345678910",
-  "dokumenter": [
-    {
-      "brevkode": "NAV 04-01.04",
+  "søknad_uuid": "19185bc3-7752-48c3-9886-c429c76b5041",
+  "ident": "12345678913",
+  "type": "NY_DIALOG",
+  "innsendingId": "d0664505-e546-4cef-9e3f-8f49b85afb58",
+  "NyJournalpost": {
+    "hovedDokument": {
+      "brevkode": "NAV 04.04-01",
       "varianter": [
         {
-          "urn": "urn:vedlegg:soknadId/fil1",
-          "format": "ARKIV",
+          "filnavn": "netto.pdf",
+          "urn": "urn:vedlegg:soknadId/netto.pdf",
+          "variant": "ARKIV",
           "type": "PDF"
         },
         {
-          "urn": "urn:vedlegg:soknadId/fil2",
-          "format": "FULLVERSJON",
+          "filnavn": "brutto.pdf",
+          "urn": "urn:vedlegg:soknadId/brutto.pdf",
+          "variant": "FULLVERSJON",
           "type": "PDF"
         }
       ]
+    },
+    "dokumenter": [
+      {
+        "brevkode": "DOK1",
+        "varianter": [
+          {
+            "filnavn": "DOK1A",
+            "urn": "urn:vedlegg:soknadId/dok1a.pdf",
+            "variant": "ARKIV",
+            "type": "PDF"
+          },
+          {
+            "filnavn": "DOK1B",
+            "urn": "urn:vedlegg:soknadId/dok1b.pdf",
+            "variant": "FULLVERSJON",
+            "type": "PDF"
+          }
+        ]
+      },
+      {
+        "brevkode": "DOK2",
+        "varianter": [
+          {
+            "filnavn": "dok2.pdf",
+            "urn": "urn:vedlegg:soknadId/dok2.pdf",
+            "variant": "ARKIV",
+            "type": "PDF"
+          }
+        ]
+      }
+    ]
+  },
+  "hovedDokument": {},
+  "dokumenter": [],
+  "@id": "c1116672-9057-406b-93e1-7198f7282126",
+  "@opprettet": "2022-09-26T09:47:25.411111",
+  "system_read_count": 0,
+  "system_participating_services": [
+    {
+      "id": "c1116672-9057-406b-93e1-7198f7282126",
+      "time": "2022-09-26T09:47:25.411111"
     }
   ]
 }
