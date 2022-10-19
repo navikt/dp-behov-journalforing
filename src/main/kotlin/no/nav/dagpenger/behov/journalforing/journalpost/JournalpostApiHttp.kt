@@ -38,7 +38,7 @@ private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 internal class JournalpostApiHttp(
     engine: HttpClientEngine = CIO.create(),
     private val tokenProvider: () -> String,
-    private val basePath: String = "rest/journalpostapi/v1",
+    private val basePath: String = "rest/journalpostapi/v1"
 ) : JournalpostApi {
     private val client = HttpClient(engine) {
         expectSuccess = true
@@ -85,7 +85,8 @@ internal class JournalpostApiHttp(
                                 Variant.valueOf(variant.format.toString()),
                                 Base64.getEncoder().encodeToString(variant.fysiskDokument)
                             )
-                        }
+                        },
+                        dokument.tittel
                     )
                 }
             )
@@ -101,24 +102,25 @@ internal class JournalpostApiHttp(
         val dokumenter: List<Dokument>,
         private val journalposttype: String = "INNGAAENDE",
         private val tema: String = "DAG",
-        private val kanal: String = "NAV_NO",
+        private val kanal: String = "NAV_NO"
     ) {
         @JsonAutoDetect(fieldVisibility = Visibility.ANY)
         data class Bruker(
             val id: String,
-            private val idType: String = "FNR",
+            private val idType: String = "FNR"
         )
     }
 
     private data class Dokument(
-        val brevkode: String,
+        val brevkode: String?,
         val dokumentvarianter: List<Dokumentvariant>,
+        val tittel: String? = null
     )
 
     private data class Dokumentvariant(
         val filtype: Filtype,
         val variantformat: Variant,
-        val fysiskDokument: String,
+        val fysiskDokument: String
     ) {
         enum class Filtype {
             PDF, PDFA, JPEG, TIFF, JSON, PNG,
@@ -131,7 +133,7 @@ internal class JournalpostApiHttp(
 
     private data class Resultat(
         val journalpostId: String,
-        val dokumenter: List<DokumentInfo>,
+        val dokumenter: List<DokumentInfo>
     ) {
         data class DokumentInfo(val dokumentInfoId: String)
     }

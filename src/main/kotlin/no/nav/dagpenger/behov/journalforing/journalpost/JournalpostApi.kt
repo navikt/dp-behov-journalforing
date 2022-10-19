@@ -8,14 +8,15 @@ internal interface JournalpostApi {
     )
 
     data class Dokument(
-        val brevkode: String,
-        val varianter: List<Variant>
+        val brevkode: String?,
+        val varianter: List<Variant>,
+        val tittel: String? = null
     )
 
     data class Variant(
         val filtype: Filtype,
         val format: Format,
-        val fysiskDokument: ByteArray,
+        val fysiskDokument: ByteArray
     ) {
         override fun toString() = "Variant(filtype=$filtype, format=$format)"
 

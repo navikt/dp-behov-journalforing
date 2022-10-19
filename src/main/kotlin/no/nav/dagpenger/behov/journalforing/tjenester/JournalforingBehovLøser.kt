@@ -40,17 +40,6 @@ internal class JournalforingBehovLøser(
         }.register(this)
     }
 
-    private suspend fun JsonNode.toDokument(ident: String) = Dokument(
-        brevkode = this["brevkode"].asText(),
-        varianter = this["varianter"].map { variant ->
-            Variant(
-                filtype = Filtype.valueOf(variant["type"].asText()),
-                format = Format.valueOf(variant["variant"].asText()),
-                fysiskDokument = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
-            )
-        }
-    )
-
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadId = packet["søknad_uuid"].asText()
         val ident = packet["ident"].asText()
@@ -64,7 +53,6 @@ internal class JournalforingBehovLøser(
                     val dokument = jsonNode.toDokument(ident)
                     dokument.copy(varianter = dokument.varianter + faktahenter.hentJsonSøknad(søknadId))
                 }
-
                 val dokumenter: List<Dokument> =
                     listOf(hovedDokument) + packet[NY_JOURNAL_POST]["dokumenter"].map { it.toDokument(ident) }
 
@@ -80,4 +68,16 @@ internal class JournalforingBehovLøser(
             }
         }
     }
+
+    private suspend fun JsonNode.toDokument(ident: String) = Dokument(
+        brevkode = this["brevkode"]?.asText(),
+        tittel = this["tittel"]?.asText(),
+        varianter = this["varianter"].map { variant ->
+            Variant(
+                filtype = Filtype.valueOf(variant["type"].asText()),
+                format = Format.valueOf(variant["variant"].asText()),
+                fysiskDokument = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
+            )
+        }
+    )
 }
