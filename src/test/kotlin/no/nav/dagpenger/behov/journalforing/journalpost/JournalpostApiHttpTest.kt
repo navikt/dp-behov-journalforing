@@ -1,7 +1,9 @@
 package no.nav.dagpenger.behov.journalforing.journalpost
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.engine.mock.toByteReadPacket
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
@@ -16,9 +18,16 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.F
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format.FULLVERSJON
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 internal class JournalpostApiHttpTest {
+
+    private companion object {
+        val jacksonObjectMapper = jacksonObjectMapper()
+    }
     @Test
     fun `oppretter journalposter`() {
         runBlocking {
@@ -34,14 +43,42 @@ internal class JournalpostApiHttpTest {
                 "brukerident",
                 listOf(
                     Dokument(
-                        "123",
-                        listOf(
+                        brevkode = "123",
+                        tittel = null,
+                        varianter = listOf(
                             Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
                             Variant(PDF, FULLVERSJON, fysiskDokument = ByteArray(2))
                         )
-                    )
+                    ),
+                    Dokument(
+                        tittel = "dagpengersøknad",
+                        brevkode = "456",
+                        varianter = listOf(
+                            Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
+                        )
+                    ),
                 )
             )
+
+            with(mockEngine.requestHistory.first()) {
+                val journalpost =  jacksonObjectMapper.readTree(this.body.toByteReadPacket().readText())
+                assertEquals("brukerident", journalpost["avsenderMottaker"]["id"].asText())
+                assertEquals("FNR", journalpost["avsenderMottaker"]["idType"].asText())
+                assertEquals("brukerident", journalpost["bruker"]["id"].asText())
+                assertEquals("FNR", journalpost["bruker"]["idType"].asText())
+                val førsteDokument = journalpost["dokumenter"].first()
+                assertEquals("123", førsteDokument["brevkode"].asText())
+                assertFalse(førsteDokument.has("tittel")) {"tittel er ikke satt men var '${førsteDokument["tittel"].asText()}'"}
+                assertEquals("JPEG", førsteDokument["dokumentvarianter"][0]["filtype"].asText())
+                assertEquals("ARKIV", førsteDokument["dokumentvarianter"][0]["variantformat"].asText())
+                assertNotNull(førsteDokument["dokumentvarianter"][0]["fysiskDokument"])
+                assertEquals("PDF", førsteDokument["dokumentvarianter"][1]["filtype"].asText())
+                assertEquals("FULLVERSJON", førsteDokument["dokumentvarianter"][1]["variantformat"].asText())
+                assertNotNull(førsteDokument["dokumentvarianter"][1]["fysiskDokument"])
+
+                val andreDokument = journalpost["dokumenter"][1]
+                assertEquals("dagpengersøknad", andreDokument["tittel"].asText())
+            }
             assertEquals("467010363", journalpost.id)
         }
     }

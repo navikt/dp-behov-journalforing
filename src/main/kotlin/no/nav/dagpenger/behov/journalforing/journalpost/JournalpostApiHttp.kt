@@ -2,7 +2,9 @@ package no.nav.dagpenger.behov.journalforing.journalpost
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility
+import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.stringType
 import io.ktor.client.HttpClient
@@ -54,6 +56,7 @@ internal class JournalpostApiHttp(
         install(ContentNegotiation) {
             jackson {
                 configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                setSerializationInclusion(JsonInclude.Include.NON_NULL)
             }
         }
         install(Logging) {
