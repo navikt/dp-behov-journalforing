@@ -27,6 +27,7 @@ internal class JournalpostApiHttpTest {
     private companion object {
         val jacksonObjectMapper = jacksonObjectMapper()
     }
+
     @Test
     fun `oppretter journalposter`() {
         runBlocking {
@@ -53,21 +54,21 @@ internal class JournalpostApiHttpTest {
                         tittel = "dagpengersøknad",
                         brevkode = "456",
                         varianter = listOf(
-                            Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
+                            Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2))
                         )
-                    ),
+                    )
                 )
             )
 
             with(mockEngine.requestHistory.first()) {
-                val journalpost =  jacksonObjectMapper.readTree(this.body.toByteReadPacket().readText())
+                val journalpost = jacksonObjectMapper.readTree(this.body.toByteReadPacket().readText())
                 assertEquals("brukerident", journalpost["avsenderMottaker"]["id"].asText())
                 assertEquals("FNR", journalpost["avsenderMottaker"]["idType"].asText())
                 assertEquals("brukerident", journalpost["bruker"]["id"].asText())
                 assertEquals("FNR", journalpost["bruker"]["idType"].asText())
                 val førsteDokument = journalpost["dokumenter"].first()
                 assertEquals("123", førsteDokument["brevkode"].asText())
-                assertFalse(førsteDokument.has("tittel")) {"tittel er ikke satt men var '${førsteDokument["tittel"].asText()}'"}
+                assertFalse(førsteDokument.has("tittel")) { "tittel er ikke satt men var '${førsteDokument["tittel"].asText()}'" }
                 assertEquals("JPEG", førsteDokument["dokumentvarianter"][0]["filtype"].asText())
                 assertEquals("ARKIV", førsteDokument["dokumentvarianter"][0]["variantformat"].asText())
                 assertNotNull(førsteDokument["dokumentvarianter"][0]["fysiskDokument"])
