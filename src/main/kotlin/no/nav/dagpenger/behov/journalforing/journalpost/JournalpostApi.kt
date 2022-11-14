@@ -9,8 +9,7 @@ internal interface JournalpostApi {
 
     data class Dokument(
         val brevkode: String?,
-        val varianter: List<Variant>,
-        val tittel: String? = null
+        val varianter: List<Variant>
     )
 
     data class Variant(
@@ -26,6 +25,26 @@ internal interface JournalpostApi {
 
         enum class Format {
             ARKIV, ORIGINAL, FULLVERSJON,
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as Variant
+
+            if (filtype != other.filtype) return false
+            if (format != other.format) return false
+            if (!fysiskDokument.contentEquals(other.fysiskDokument)) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = filtype.hashCode()
+            result = 31 * result + format.hashCode()
+            result = 31 * result + fysiskDokument.contentHashCode()
+            return result
         }
     }
 }

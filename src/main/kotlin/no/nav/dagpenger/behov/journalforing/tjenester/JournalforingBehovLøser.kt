@@ -36,13 +36,15 @@ internal class JournalforingBehovLøser(
         River(rapidsConnection).apply {
             validate { it.demandAll("@behov", listOf(NY_JOURNAL_POST)) }
             validate { it.rejectKey("@løsning") }
-            validate { it.requireKey("søknad_uuid", "ident", NY_JOURNAL_POST) }
+            validate { it.requireKey("søknad_uuid", "ident", "type", NY_JOURNAL_POST) }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadId = packet["søknad_uuid"].asText()
         val ident = packet["ident"].asText()
+        val innsendingType = InnsendingType.valueOf(packet["type"].asText())
+
         withLoggingContext(
             "søknadId" to søknadId
         ) {
@@ -50,7 +52,7 @@ internal class JournalforingBehovLøser(
             if (skipSet.contains(søknadId)) return
             runBlocking(MDCContext()) {
                 val hovedDokument = packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
-                    val dokument = jsonNode.toDokument(ident)
+                    val dokument = jsonNode.toDokument(ident, innsendingType.brevkode(jsonNode["skjemakode"].asText()))
                     dokument.copy(varianter = dokument.varianter + faktahenter.hentJsonSøknad(søknadId))
                 }
                 val dokumenter: List<Dokument> =
@@ -69,9 +71,20 @@ internal class JournalforingBehovLøser(
         }
     }
 
-    private suspend fun JsonNode.toDokument(ident: String) = Dokument(
-        brevkode = this["brevkode"]?.asText(),
-        tittel = this["tittel"]?.textValue(),
+    private enum class InnsendingType {
+        NY_DIALOG,
+        ETTERSENDING_TIL_DIALOG;
+
+        fun brevkode(skjemakode: String) = skjemakode.let {
+            when (this) {
+                NY_DIALOG -> "NAV $skjemakode"
+                ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
+            }
+        }
+    }
+
+    private suspend fun JsonNode.toDokument(ident: String, brevkode: String = this["skjemakode"].asText()) = Dokument(
+        brevkode = brevkode,
         varianter = this["varianter"].map { variant ->
             Variant(
                 filtype = Filtype.valueOf(variant["type"].asText()),

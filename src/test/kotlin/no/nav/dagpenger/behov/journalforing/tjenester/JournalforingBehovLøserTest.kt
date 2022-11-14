@@ -13,7 +13,6 @@ import no.nav.dagpenger.behov.journalforing.soknad.SoknadHttp
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
 internal class JournalforingBehovLøserTest {
@@ -42,19 +41,16 @@ internal class JournalforingBehovLøserTest {
         assertEquals(3, sendteDokumenter.captured.size)
         with(sendteDokumenter.captured[0]) {
             assertEquals(this.brevkode, "NAV 04.04-01")
-            assertNull(this.tittel)
             assertEquals(this.varianter.size, 3)
         }
 
         with(sendteDokumenter.captured[1]) {
             assertEquals(this.brevkode, "DOK1")
-            assertEquals(this.tittel, "Arbeidsavtale")
             assertEquals(this.varianter.size, 2)
         }
 
         with(sendteDokumenter.captured[2]) {
             assertEquals(this.brevkode, "DOK2")
-            assertNull(this.tittel)
             assertEquals(this.varianter.size, 1)
         }
 
@@ -78,7 +74,7 @@ val testMessage = """{
   "innsendingId": "d0664505-e546-4cef-9e3f-8f49b85afb58",
   "NyJournalpost": {
     "hovedDokument": {
-      "brevkode": "NAV 04.04-01",
+      "skjemakode": "04.04-01",
       "varianter": [
         {
           "filnavn": "netto.pdf",
@@ -96,8 +92,7 @@ val testMessage = """{
     },
     "dokumenter": [
       {
-        "brevkode": "DOK1",
-        "tittel": "Arbeidsavtale",
+        "skjemakode": "DOK1",
         "varianter": [
           {
             "filnavn": "DOK1A",
@@ -114,7 +109,7 @@ val testMessage = """{
         ]
       },
       {
-        "brevkode": "DOK2",
+        "skjemakode": "DOK2",
         "varianter": [
           {
             "filnavn": "dok2.pdf",

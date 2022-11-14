@@ -87,8 +87,7 @@ internal class JournalpostApiHttp(
                                 Variant.valueOf(variant.format.toString()),
                                 Base64.getEncoder().encodeToString(variant.fysiskDokument)
                             )
-                        },
-                        dokument.tittel
+                        }
                     )
                 }
             )
@@ -115,8 +114,7 @@ internal class JournalpostApiHttp(
 
     private data class Dokument(
         val brevkode: String?,
-        val dokumentvarianter: List<Dokumentvariant>,
-        val tittel: String? = null
+        val dokumentvarianter: List<Dokumentvariant>
     )
 
     private data class Dokumentvariant(
