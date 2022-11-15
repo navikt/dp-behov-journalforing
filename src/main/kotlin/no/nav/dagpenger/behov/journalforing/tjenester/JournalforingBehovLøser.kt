@@ -71,13 +71,13 @@ internal class JournalforingBehovLøser(
                     NY_JOURNAL_POST to journalpost.id
                 )
                 context.publish(packet.toJson())
+                logg.info { "Løser behov $NY_JOURNAL_POST med journalpostId=${journalpost.id}" }
             }
         }
     }
 
     private enum class InnsendingType {
-        NY_DIALOG,
-        ETTERSENDING_TIL_DIALOG;
+        NY_DIALOG, ETTERSENDING_TIL_DIALOG;
 
         fun brevkode(skjemakode: String) = when (this) {
             NY_DIALOG -> "NAV $skjemakode"
@@ -85,16 +85,18 @@ internal class JournalforingBehovLøser(
         }
     }
 
-    private suspend fun JsonNode.toDokument(ident: String, brevkode: String = this.skjemakode()) = Dokument(
-        brevkode = brevkode,
-        tittel = DokumentTittelOppslag.hentTittel(brevkode),
-        varianter = this["varianter"].map { variant ->
-            Variant(
-                filtype = Filtype.valueOf(variant["type"].asText()),
-                format = Format.valueOf(variant["variant"].asText()),
-                fysiskDokument = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
-            )
-        }
-    )
+    private suspend fun JsonNode.toDokument(ident: String, brevkode: String = this.skjemakode()) =
+        Dokument(
+            brevkode = brevkode,
+            tittel = DokumentTittelOppslag.hentTittel(brevkode),
+            varianter = this["varianter"].map { variant ->
+                Variant(
+                    filtype = Filtype.valueOf(variant["type"].asText()),
+                    format = Format.valueOf(variant["variant"].asText()),
+                    fysiskDokument = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
+                )
+            }
+        )
+
     private fun JsonNode.skjemakode(): String = this["skjemakode"].asText()
 }
