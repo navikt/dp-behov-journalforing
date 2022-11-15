@@ -80,14 +80,15 @@ internal class JournalpostApiHttp(
                 bruker = Bruker(ident),
                 dokumenter = dokumenter.map { dokument ->
                     Dokument(
-                        dokument.brevkode,
-                        dokument.varianter.map { variant ->
+                        brevkode = dokument.brevkode,
+                        dokumentvarianter = dokument.varianter.map { variant ->
                             Dokumentvariant(
                                 Filtype.valueOf(variant.filtype.toString()),
                                 Variant.valueOf(variant.format.toString()),
                                 Base64.getEncoder().encodeToString(variant.fysiskDokument)
                             )
-                        }
+                        },
+                        tittel = dokument.tittel
                     )
                 }
             )
@@ -114,7 +115,8 @@ internal class JournalpostApiHttp(
 
     private data class Dokument(
         val brevkode: String?,
-        val dokumentvarianter: List<Dokumentvariant>
+        val dokumentvarianter: List<Dokumentvariant>,
+        val tittel: String? = null
     )
 
     private data class Dokumentvariant(

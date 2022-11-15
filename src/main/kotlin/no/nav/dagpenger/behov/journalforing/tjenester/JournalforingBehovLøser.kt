@@ -87,6 +87,7 @@ internal class JournalforingBehovLøser(
 
     private suspend fun JsonNode.toDokument(ident: String, brevkode: String = this.skjemakode()) = Dokument(
         brevkode = brevkode,
+        tittel = DokumentTittelOppslag.hentTittel(brevkode),
         varianter = this["varianter"].map { variant ->
             Variant(
                 filtype = Filtype.valueOf(variant["type"].asText()),
