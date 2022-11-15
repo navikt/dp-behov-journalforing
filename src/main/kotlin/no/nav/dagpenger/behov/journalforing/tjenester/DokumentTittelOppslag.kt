@@ -11,6 +11,7 @@ object DokumentTittelOppslag {
         "M7" to " Brev fra bobestyrer/konkursforvalter",
         "N2" to "Kopi av søknad",
         "N5" to "Kopi av undersøkelsesresultat",
+        "N6" to "Annet",
         "NAV 04-01.03" to "Søknad om dagpenger (ikke permittert)",
         "NAV 04-01.04" to "Søknad om dagpenger ved permittering",
         "NAV 04-02.01" to "Søknad om utstedelse av attest PD U2",
@@ -55,6 +56,6 @@ object DokumentTittelOppslag {
         "V6" to "Kopi av sluttavtale",
         "X8" to "Fødselsattest/bostedsbevis for barn under 18 år",
         "XY" to "Uttalelse eller vurdering fra kompetent fagpersonell",
-        "N6" to "Annet"
+        "Y2" to "Uttalelse eller vurdering fra kompetent fagpersonell"
     )
 }
