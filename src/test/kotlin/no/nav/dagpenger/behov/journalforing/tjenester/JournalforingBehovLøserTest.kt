@@ -42,17 +42,20 @@ internal class JournalforingBehovLøserTest {
 
         assertEquals(3, sendteDokumenter.captured.size)
         with(sendteDokumenter.captured[0]) {
-            assertEquals(this.brevkode, "NAV 04.04-01")
+            assertEquals(this.brevkode, "NAV 04-01.03")
+            assertEquals(this.tittel, "Søknad om dagpenger (ikke permittert)")
             assertEquals(this.varianter.size, 3)
         }
 
         with(sendteDokumenter.captured[1]) {
             assertEquals(this.brevkode, "DOK1")
+            assertEquals(this.tittel, "Ukjent dokumentittel")
             assertEquals(this.varianter.size, 2)
         }
 
         with(sendteDokumenter.captured[2]) {
             assertEquals(this.brevkode, "DOK2")
+            assertEquals(this.tittel, "Ukjent dokumentittel")
             assertEquals(this.varianter.size, 1)
         }
 
@@ -74,11 +77,13 @@ internal class JournalforingBehovLøserTest {
         assertEquals(2, sendteDokumenter.captured.size)
         with(sendteDokumenter.captured[0]) {
             assertEquals(this.brevkode, "GENERELL_INNSENDING")
+            assertEquals(this.tittel, "Generell innsending")
             assertEquals(this.varianter.size, 3)
         }
 
         with(sendteDokumenter.captured[1]) {
             assertEquals(this.brevkode, "N6")
+            assertEquals(this.tittel, "Annet")
             assertEquals(this.varianter.size, 2)
         }
     }
@@ -97,7 +102,7 @@ val dagpengerInnsending = """{
   "innsendingId": "d0664505-e546-4cef-9e3f-8f49b85afb58",
   "NyJournalpost": {
     "hovedDokument": {
-      "skjemakode": "04.04-01",
+      "skjemakode": "04-01.03",
       "varianter": [
         {
           "filnavn": "netto.pdf",
