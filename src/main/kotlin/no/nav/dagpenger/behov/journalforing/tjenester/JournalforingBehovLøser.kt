@@ -52,7 +52,11 @@ internal class JournalforingBehovLøser(
             if (skipSet.contains(søknadId)) return
             runBlocking(MDCContext()) {
                 val hovedDokument = packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
-                    val dokument = jsonNode.toDokument(ident, innsendingType.brevkode(jsonNode["skjemakode"].asText()))
+                    val brevkode = when (jsonNode.skjemakode()) {
+                        "GENERELL_INNSENDING" -> jsonNode.skjemakode()
+                        else -> innsendingType.brevkode(jsonNode.skjemakode())
+                    }
+                    val dokument = jsonNode.toDokument(ident, brevkode)
                     dokument.copy(varianter = dokument.varianter + faktahenter.hentJsonSøknad(søknadId))
                 }
                 val dokumenter: List<Dokument> =
@@ -75,15 +79,13 @@ internal class JournalforingBehovLøser(
         NY_DIALOG,
         ETTERSENDING_TIL_DIALOG;
 
-        fun brevkode(skjemakode: String) = skjemakode.let {
-            when (this) {
-                NY_DIALOG -> "NAV $skjemakode"
-                ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
-            }
+        fun brevkode(skjemakode: String) = when (this) {
+            NY_DIALOG -> "NAV $skjemakode"
+            ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
         }
     }
 
-    private suspend fun JsonNode.toDokument(ident: String, brevkode: String = this["skjemakode"].asText()) = Dokument(
+    private suspend fun JsonNode.toDokument(ident: String, brevkode: String = this.skjemakode()) = Dokument(
         brevkode = brevkode,
         varianter = this["varianter"].map { variant ->
             Variant(
@@ -93,4 +95,5 @@ internal class JournalforingBehovLøser(
             )
         }
     )
+    private fun JsonNode.skjemakode(): String = this["skjemakode"].asText()
 }
