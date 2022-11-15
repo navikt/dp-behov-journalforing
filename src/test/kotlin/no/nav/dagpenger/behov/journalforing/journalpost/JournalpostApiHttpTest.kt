@@ -43,6 +43,7 @@ internal class JournalpostApiHttpTest {
                 listOf(
                     Dokument(
                         brevkode = "123",
+                        tittel = "dagpengersøknad",
                         varianter = listOf(
                             Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
                             Variant(PDF, FULLVERSJON, fysiskDokument = ByteArray(2))
@@ -50,6 +51,7 @@ internal class JournalpostApiHttpTest {
                     ),
                     Dokument(
                         brevkode = "456",
+                        tittel = "vedleggtittel",
                         varianter = listOf(
                             Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2))
                         )
@@ -59,19 +61,23 @@ internal class JournalpostApiHttpTest {
 
             with(mockEngine.requestHistory.first()) {
                 val journalpost = jacksonObjectMapper.readTree(this.body.toByteReadPacket().readText())
+
                 assertEquals("brukerident", journalpost["avsenderMottaker"]["id"].asText())
                 assertEquals("FNR", journalpost["avsenderMottaker"]["idType"].asText())
                 assertEquals("brukerident", journalpost["bruker"]["id"].asText())
                 assertEquals("FNR", journalpost["bruker"]["idType"].asText())
                 val førsteDokument = journalpost["dokumenter"].first()
                 assertEquals("123", førsteDokument["brevkode"].asText())
+                assertEquals("dagpengersøknad", førsteDokument["tittel"].asText())
                 assertEquals("JPEG", førsteDokument["dokumentvarianter"][0]["filtype"].asText())
                 assertEquals("ARKIV", førsteDokument["dokumentvarianter"][0]["variantformat"].asText())
                 assertNotNull(førsteDokument["dokumentvarianter"][0]["fysiskDokument"])
                 assertEquals("PDF", førsteDokument["dokumentvarianter"][1]["filtype"].asText())
                 assertEquals("FULLVERSJON", førsteDokument["dokumentvarianter"][1]["variantformat"].asText())
                 assertNotNull(førsteDokument["dokumentvarianter"][1]["fysiskDokument"])
-                journalpost["dokumenter"][1]
+                val andreDokument = journalpost["dokumenter"].last()
+                assertEquals("456", andreDokument["brevkode"].asText())
+                assertEquals("vedleggtittel", andreDokument["tittel"].asText())
             }
             assertEquals("467010363", journalpost.id)
         }

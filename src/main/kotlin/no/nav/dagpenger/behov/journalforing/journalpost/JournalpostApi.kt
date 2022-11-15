@@ -9,6 +9,7 @@ internal interface JournalpostApi {
 
     data class Dokument(
         val brevkode: String?,
+        val tittel: String? = null,
         val varianter: List<Variant>
     )
 
