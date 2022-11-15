@@ -55,7 +55,6 @@ object DokumentTittelOppslag {
         "U1" to "U1 Perioder av betydning for retten til dagpenger",
         "V6" to "Kopi av sluttavtale",
         "X8" to "Fødselsattest/bostedsbevis for barn under 18 år",
-        "XY" to "Uttalelse eller vurdering fra kompetent fagpersonell",
         "Y2" to "Uttalelse eller vurdering fra kompetent fagpersonell"
     )
 }
