@@ -15,7 +15,6 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.F
 import no.nav.dagpenger.behov.journalforing.soknad.SoknadHttp
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 
@@ -78,14 +77,6 @@ internal class JournalforingBehovLøser(
                 logg.info { "Løser behov $NY_JOURNAL_POST med journalpostId=${journalpost.id}" }
             }
         }
-    }
-
-    override fun onError(problems: MessageProblems, context: MessageContext) {
-        println(problems)
-    }
-
-    override fun onSevere(error: MessageProblems.MessageException, context: MessageContext) {
-        println(error)
     }
 
     private enum class InnsendingType {
