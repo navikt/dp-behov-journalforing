@@ -10,6 +10,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.ResponseException
@@ -23,6 +24,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
 import io.ktor.http.encodedPath
@@ -43,13 +45,15 @@ internal class JournalpostApiHttp(
     private val basePath: String = "rest/journalpostapi/v1"
 ) : JournalpostApi {
     private val client = HttpClient(engine) {
-        expectSuccess = true
         HttpResponseValidator {
+            validateResponse { response ->
+                if (response.status != HttpStatusCode.Conflict && response.status != HttpStatusCode.Created) {
+                    throw ClientRequestException(response, response.bodyAsText())
+                }
+            }
             handleResponseExceptionWithRequest { exception, _ ->
                 val responseException = exception as? ResponseException ?: return@handleResponseExceptionWithRequest
-                val exceptionResponse = exception.response
-                val exceptionResponseText = exceptionResponse.bodyAsText()
-                sikkerlogg.error(responseException) { "Kall mot journalpostapi feilet. Response body\n$exceptionResponseText" }
+                sikkerlogg.error(responseException) { "Kall mot journalpostapi feilet." }
                 throw responseException
             }
         }
@@ -74,38 +78,41 @@ internal class JournalpostApiHttp(
         }
     }
 
-    override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>) = client.post {
-        url { encodedPath = "$basePath/journalpost" }
-        header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-        contentType(ContentType.Application.Json)
-        setBody(
-            Journalpost(
-                avsenderMottaker = Bruker(ident),
-                bruker = Bruker(ident),
-                dokumenter = dokumenter.map { dokument ->
-                    Dokument(
-                        brevkode = dokument.brevkode,
-                        dokumentvarianter = dokument.varianter.map { variant ->
-                            Dokumentvariant(
-                                Filtype.valueOf(variant.filtype.toString()),
-                                Variant.valueOf(variant.format.toString()),
-                                Base64.getEncoder().encodeToString(variant.fysiskDokument)
-                            )
-                        },
-                        tittel = dokument.tittel
-                    )
-                }
+    override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>, eksternReferanseId: String) =
+        client.post {
+            url { encodedPath = "$basePath/journalpost" }
+            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
+            contentType(ContentType.Application.Json)
+            setBody(
+                Journalpost(
+                    avsenderMottaker = Bruker(ident),
+                    bruker = Bruker(ident),
+                    eksternReferanseId = eksternReferanseId,
+                    dokumenter = dokumenter.map { dokument ->
+                        Dokument(
+                            brevkode = dokument.brevkode,
+                            dokumentvarianter = dokument.varianter.map { variant ->
+                                Dokumentvariant(
+                                    Filtype.valueOf(variant.filtype.toString()),
+                                    Variant.valueOf(variant.format.toString()),
+                                    Base64.getEncoder().encodeToString(variant.fysiskDokument)
+                                )
+                            },
+                            tittel = dokument.tittel
+                        )
+                    }
+                )
             )
-        )
-    }.body<Resultat>().let {
-        Journalpost(it.journalpostId)
-    }
+        }.body<Resultat>().let {
+            Journalpost(it.journalpostId)
+        }
 
     @JsonAutoDetect(fieldVisibility = Visibility.ANY)
     private data class Journalpost(
         val avsenderMottaker: Bruker,
         val bruker: Bruker,
         val dokumenter: List<Dokument>,
+        val eksternReferanseId: String,
         private val journalposttype: String = "INNGAAENDE",
         private val tema: String = "DAG",
         private val kanal: String = "NAV_NO"

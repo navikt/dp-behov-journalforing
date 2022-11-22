@@ -1,7 +1,7 @@
 package no.nav.dagpenger.behov.journalforing.journalpost
 
 internal interface JournalpostApi {
-    suspend fun opprett(ident: String, dokumenter: List<Dokument>): Journalpost
+    suspend fun opprett(ident: String, dokumenter: List<Dokument>, eksternReferanseId: String): Journalpost
 
     data class Journalpost(
         val id: String

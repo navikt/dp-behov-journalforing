@@ -42,6 +42,7 @@ dependencies {
 
     testImplementation(kotlin("test"))
     testImplementation(Ktor2.Client.library("mock"))
+    testImplementation(Junit5.library("params"))
 }
 
 tasks.withType<Test> {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.toByteReadPacket
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
@@ -20,20 +21,25 @@ import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import java.util.UUID
 
 internal class JournalpostApiHttpTest {
-
     private companion object {
         val jacksonObjectMapper = jacksonObjectMapper()
     }
 
-    @Test
-    fun `oppretter journalposter`() {
+    @ParameterizedTest(name = "Oppretter journalpost gir status {index}")
+    @ValueSource(ints = [201, 409])
+    fun `oppretter journalposter`(status: Int) {
+        val eksternReferanseId = UUID.randomUUID().toString()
         runBlocking {
             val mockEngine = MockEngine {
                 respond(
                     content = ByteReadChannel(dummyResponse),
-                    status = HttpStatusCode.Created,
+                    status = HttpStatusCode.fromValue(status),
                     headers = headersOf(HttpHeaders.ContentType, "application/json")
                 )
             }
@@ -56,12 +62,14 @@ internal class JournalpostApiHttpTest {
                             Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2))
                         )
                     )
-                )
+                ),
+                eksternReferanseId
             )
 
             with(mockEngine.requestHistory.first()) {
                 val journalpost = jacksonObjectMapper.readTree(this.body.toByteReadPacket().readText())
-
+                // dokarkiv kjører duplikatkontroll på eksternReferanseId
+                assertEquals(eksternReferanseId, journalpost["eksternReferanseId"].asText())
                 assertEquals("brukerident", journalpost["avsenderMottaker"]["id"].asText())
                 assertEquals("FNR", journalpost["avsenderMottaker"]["idType"].asText())
                 assertEquals("brukerident", journalpost["bruker"]["id"].asText())
@@ -82,6 +90,23 @@ internal class JournalpostApiHttpTest {
             assertEquals("467010363", journalpost.id)
         }
     }
+
+    @Test
+    fun `kaster exception ved ekte feil`() {
+        runBlocking {
+            val mockEngine = MockEngine {
+                respond(
+                    content = ByteReadChannel(exceptionResponse),
+                    status = HttpStatusCode.BadRequest,
+                    headers = headersOf(HttpHeaders.ContentType, "application/json")
+                )
+            }
+            val apiClient = JournalpostApiHttp(mockEngine, mockk(relaxed = true))
+            assertThrows<ClientRequestException> {
+                apiClient.opprett("brukerident", listOf(), UUID.randomUUID().toString())
+            }
+        }
+    }
 }
 
 @Language("JSON")
@@ -93,5 +118,11 @@ private val dummyResponse = """{
   ],
   "journalpostId": "467010363",
   "journalpostferdigstilt": true
+}
+""".trimIndent()
+
+@Language("JSON")
+private val exceptionResponse = """{
+    "error": "feil"
 }
 """.trimIndent()
