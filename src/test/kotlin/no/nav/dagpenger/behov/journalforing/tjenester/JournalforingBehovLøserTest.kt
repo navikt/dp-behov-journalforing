@@ -35,7 +35,7 @@ internal class JournalforingBehovLøserTest {
     fun `løser behov for å opprette ny journalpost for dagpenger`() {
         val sendteDokumenter = slot<List<JournalpostApi.Dokument>>()
         coEvery {
-            journalpostApi.opprett(any(), capture(sendteDokumenter))
+            journalpostApi.opprett(any(), capture(sendteDokumenter), any())
         } returns Journalpost("journalpost123")
 
         testRapid.sendTestMessage(dagpengerInnsending)
@@ -69,7 +69,7 @@ internal class JournalforingBehovLøserTest {
     fun `løser behov for å opprette ny journalpost for generell innsending`() {
         val sendteDokumenter = slot<List<JournalpostApi.Dokument>>()
         coEvery {
-            journalpostApi.opprett(any(), capture(sendteDokumenter))
+            journalpostApi.opprett(any(), capture(sendteDokumenter), any())
         } returns Journalpost("journalpost123")
 
         testRapid.sendTestMessage(generellInnsending)

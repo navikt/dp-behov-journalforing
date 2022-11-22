@@ -15,6 +15,7 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.F
 import no.nav.dagpenger.behov.journalforing.soknad.SoknadHttp
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
+import no.nav.helse.rapids_rivers.MessageProblems
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
 
@@ -36,17 +37,19 @@ internal class JournalforingBehovLøser(
         River(rapidsConnection).apply {
             validate { it.demandAll("@behov", listOf(NY_JOURNAL_POST)) }
             validate { it.rejectKey("@løsning") }
-            validate { it.requireKey("søknad_uuid", "ident", "type", NY_JOURNAL_POST) }
+            validate { it.requireKey("@behovId", "søknad_uuid", "ident", "type", NY_JOURNAL_POST) }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val søknadId = packet["søknad_uuid"].asText()
         val ident = packet["ident"].asText()
+        val behovId = packet["@behovId"].asText()
         val innsendingType = InnsendingType.valueOf(packet["type"].asText())
 
         withLoggingContext(
-            "søknadId" to søknadId
+            "søknadId" to søknadId,
+            "behovId" to behovId
         ) {
             logg.info("Mottok behov for ny journalpost med uuid $søknadId")
             if (skipSet.contains(søknadId)) return
@@ -65,7 +68,8 @@ internal class JournalforingBehovLøser(
                 sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
                 val journalpost = journalpostApi.opprett(
                     ident = ident,
-                    dokumenter = dokumenter
+                    dokumenter = dokumenter,
+                    eksternReferanseId = behovId
                 )
                 packet["@løsning"] = mapOf(
                     NY_JOURNAL_POST to journalpost.id
@@ -74,6 +78,14 @@ internal class JournalforingBehovLøser(
                 logg.info { "Løser behov $NY_JOURNAL_POST med journalpostId=${journalpost.id}" }
             }
         }
+    }
+
+    override fun onError(problems: MessageProblems, context: MessageContext) {
+        println(problems)
+    }
+
+    override fun onSevere(error: MessageProblems.MessageException, context: MessageContext) {
+        println(error)
     }
 
     private enum class InnsendingType {
