@@ -32,7 +32,8 @@ internal class JournalforingBehovLøser(
             "50a844a6-2458-42c6-bc0d-600bc920c108",
             "f6224540-c224-4631-8e15-e43e03d53a0e",
             "f3895258-336c-4d2d-94cc-343a07792d24",
-            "35d3bedb-5dfb-41d3-aabf-2bc4626de484"
+            "35d3bedb-5dfb-41d3-aabf-2bc4626de484",
+            "a94b9257-7b9a-4192-89fc-40ba4589c16f"
         )
         internal const val NY_JOURNAL_POST = "NyJournalpost"
     }
