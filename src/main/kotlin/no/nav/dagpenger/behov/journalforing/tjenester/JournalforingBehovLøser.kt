@@ -28,7 +28,12 @@ internal class JournalforingBehovLøser(
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
-        private val skipSet = setOf("50a844a6-2458-42c6-bc0d-600bc920c108", "f6224540-c224-4631-8e15-e43e03d53a0e", "f3895258-336c-4d2d-94cc-343a07792d24")
+        private val skipSet = setOf(
+            "50a844a6-2458-42c6-bc0d-600bc920c108",
+            "f6224540-c224-4631-8e15-e43e03d53a0e",
+            "f3895258-336c-4d2d-94cc-343a07792d24",
+            "35d3bedb-5dfb-41d3-aabf-2bc4626de484"
+        )
         internal const val NY_JOURNAL_POST = "NyJournalpost"
     }
 
