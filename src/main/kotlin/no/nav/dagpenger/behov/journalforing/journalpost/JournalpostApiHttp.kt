@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.stringType
 import io.ktor.client.HttpClient
@@ -101,7 +102,15 @@ internal class JournalpostApiHttp(
                             tittel = dokument.tittel
                         )
                     }
-                )
+                ).also {
+                    if (eksternReferanseId in setOf(
+                            "27e09c10-a0dd-49c9-9f4d-7ddf86f9d8c0",
+                            "4e8f6c60-857d-4e13-ac00-67da5153b51a"
+                        )
+                    ) {
+                        sikkerlogg.debug { "Request med: ${jacksonObjectMapper().writeValueAsString(it)}" }
+                    }
+                }
             )
         }.body<Resultat>().let {
             Journalpost(it.journalpostId)
