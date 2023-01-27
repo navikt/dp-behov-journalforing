@@ -2,7 +2,6 @@ package no.nav.dagpenger.behov.journalforing.tjenester
 
 import com.fasterxml.jackson.databind.JsonNode
 import io.ktor.client.plugins.ClientRequestException
-import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import mu.KotlinLogging
@@ -94,9 +93,9 @@ internal class JournalforingBehovLøser(
                     logg.info { "Løser behov $NY_JOURNAL_POST med journalpostId=${journalpost.id}" }
                 }
             } catch (e: ClientRequestException) {
-                if (e.response.status == HttpStatusCode.InternalServerError) {
-                    sikkerlogg.warn(e) { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly." }
-                }
+                // if (e.response.status == HttpStatusCode.InternalServerError) {
+                sikkerlogg.warn(e) { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly. R: ${e.response}" }
+                // }
                 throw e
             }
         }
