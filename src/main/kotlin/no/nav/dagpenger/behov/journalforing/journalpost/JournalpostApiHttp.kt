@@ -79,39 +79,32 @@ internal class JournalpostApiHttp(
     }
 
     override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>, eksternReferanseId: String) =
-        try {
-            client.post {
-                url { encodedPath = "$basePath/journalpost" }
-                header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-                contentType(ContentType.Application.Json)
-                setBody(
-                    Journalpost(
-                        avsenderMottaker = Bruker(ident),
-                        bruker = Bruker(ident),
-                        eksternReferanseId = eksternReferanseId,
-                        dokumenter = dokumenter.map { dokument ->
-                            Dokument(
-                                brevkode = dokument.brevkode,
-                                dokumentvarianter = dokument.varianter.map { variant ->
-                                    Dokumentvariant(
-                                        Filtype.valueOf(variant.filtype.toString()),
-                                        Variant.valueOf(variant.format.toString()),
-                                        Base64.getEncoder().encodeToString(variant.fysiskDokument)
-                                    )
-                                },
-                                tittel = dokument.tittel
-                            )
-                        }
-                    )
+        client.post {
+            url { encodedPath = "$basePath/journalpost" }
+            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
+            contentType(ContentType.Application.Json)
+            setBody(
+                Journalpost(
+                    avsenderMottaker = Bruker(ident),
+                    bruker = Bruker(ident),
+                    eksternReferanseId = eksternReferanseId,
+                    dokumenter = dokumenter.map { dokument ->
+                        Dokument(
+                            brevkode = dokument.brevkode,
+                            dokumentvarianter = dokument.varianter.map { variant ->
+                                Dokumentvariant(
+                                    Filtype.valueOf(variant.filtype.toString()),
+                                    Variant.valueOf(variant.format.toString()),
+                                    Base64.getEncoder().encodeToString(variant.fysiskDokument)
+                                )
+                            },
+                            tittel = dokument.tittel
+                        )
+                    }
                 )
-            }.body<Resultat>().let {
-                Journalpost(it.journalpostId)
-            }
-        } catch (e: ClientRequestException) {
-            if (e.response.status == HttpStatusCode.InternalServerError) {
-                sikkerlogg.warn { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly." }
-            }
-            throw e
+            )
+        }.body<Resultat>().let {
+            Journalpost(it.journalpostId)
         }
 
     @JsonAutoDetect(fieldVisibility = Visibility.ANY)
