@@ -10,10 +10,10 @@ import io.ktor.http.HttpHeaders
 
 class FillagerHttp(
     engine: HttpClientEngine = CIO.create(),
-    private val tokenProvider: () -> String
+    private val tokenProvider: () -> String,
 ) :
     Fillager {
-    private val client = HttpClient(engine) {}
+    private val client = HttpClient(engine) { expectSuccess = true }
 
     override suspend fun hentFil(urn: FilURN, eier: String): ByteArray {
         return client.get("http://dp-mellomlagring/v1/azuread/mellomlagring/vedlegg/${urn.fil}") {
