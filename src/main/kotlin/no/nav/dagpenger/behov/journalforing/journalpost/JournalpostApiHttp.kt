@@ -67,7 +67,7 @@ internal class JournalpostApiHttp(
             level = LogLevel.INFO
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = 60000
+            requestTimeoutMillis = 300000
         }
         defaultRequest {
             header("X-Nav-Consumer", "dp-behov-journalforing")
