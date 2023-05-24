@@ -80,39 +80,43 @@ internal class JournalpostApiHttp(
         }
     }
 
-    override suspend fun opprett(ident: String, dokumenter: List<JournalpostApi.Dokument>, eksternReferanseId: String) =
-        client.post {
+    override suspend fun opprett(
+        ident: String,
+        dokumenter: List<JournalpostApi.Dokument>,
+        eksternReferanseId: String,
+    ): JournalpostApi.Journalpost {
+        val body = Journalpost(
+            avsenderMottaker = Bruker(ident),
+            bruker = Bruker(ident),
+            eksternReferanseId = eksternReferanseId,
+            dokumenter = dokumenter.map { dokument ->
+                Dokument(
+                    brevkode = dokument.brevkode,
+                    dokumentvarianter = dokument.varianter.map { variant ->
+                        Dokumentvariant(
+                            Filtype.valueOf(variant.filtype.toString()),
+                            Variant.valueOf(variant.format.toString()),
+                            Base64.getEncoder().encodeToString(variant.fysiskDokument),
+                        )
+                    },
+                    tittel = dokument.tittel,
+                )
+            },
+        ).also {
+            val bodyAsString = jacksonObjectMapper().writeValueAsString(it)
+            logg.info { "Request body er " + bodyAsString.length + " bytes" }
+            sikkerlogg.info { "Request: $bodyAsString" }
+        }
+        return client.post {
             url { encodedPath = "$basePath/journalpost" }
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
             header(HttpHeaders.XRequestId, eksternReferanseId)
             contentType(ContentType.Application.Json)
-            setBody(
-                Journalpost(
-                    avsenderMottaker = Bruker(ident),
-                    bruker = Bruker(ident),
-                    eksternReferanseId = eksternReferanseId,
-                    dokumenter = dokumenter.map { dokument ->
-                        Dokument(
-                            brevkode = dokument.brevkode,
-                            dokumentvarianter = dokument.varianter.map { variant ->
-                                Dokumentvariant(
-                                    Filtype.valueOf(variant.filtype.toString()),
-                                    Variant.valueOf(variant.format.toString()),
-                                    Base64.getEncoder().encodeToString(variant.fysiskDokument),
-                                )
-                            },
-                            tittel = dokument.tittel,
-                        )
-                    },
-                ).also {
-                    val bodyAsString = jacksonObjectMapper().writeValueAsString(it)
-                    logg.info { "Request body er " + bodyAsString.length + " bytes" }
-                    sikkerlogg.info { "Request: $bodyAsString" }
-                },
-            )
+            setBody(body)
         }.body<Resultat>().let {
             Journalpost(it.journalpostId)
         }
+    }
 
     @JsonAutoDetect(fieldVisibility = Visibility.ANY)
     private data class Journalpost(
