@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.stringType
 import io.ktor.client.HttpClient
@@ -37,6 +38,7 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokum
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journalpost.Bruker
 import java.util.Base64
 
+private val logg = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
 internal class JournalpostApiHttp(
@@ -102,7 +104,11 @@ internal class JournalpostApiHttp(
                             tittel = dokument.tittel,
                         )
                     },
-                ),
+                ).also {
+                    val bodyAsString = jacksonObjectMapper().writeValueAsString(it)
+                    logg.info { "Request body er " + bodyAsString.length + " bytes" }
+                    sikkerlogg.info { "Request: $bodyAsString" }
+                },
             )
         }.body<Resultat>().let {
             Journalpost(it.journalpostId)
