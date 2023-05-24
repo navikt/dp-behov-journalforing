@@ -25,6 +25,7 @@ internal class SoknadHttp(
         install(HttpTimeout) {
             requestTimeoutMillis = 60000
         }
+        expectSuccess = true
     }
 
     internal suspend fun hentJsonSøknad(søknadId: String): Variant {
