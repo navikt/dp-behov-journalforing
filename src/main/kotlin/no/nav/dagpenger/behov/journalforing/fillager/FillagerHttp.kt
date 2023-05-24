@@ -7,18 +7,19 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
+import org.slf4j.MDC
 
 class FillagerHttp(
     engine: HttpClientEngine = CIO.create(),
     private val tokenProvider: () -> String,
-) :
-    Fillager {
+) : Fillager {
     private val client = HttpClient(engine) { expectSuccess = true }
 
     override suspend fun hentFil(urn: FilURN, eier: String): ByteArray {
         return client.get("http://dp-mellomlagring/v1/azuread/mellomlagring/vedlegg/${urn.fil}") {
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
             header("X-Eier", eier)
+            header(HttpHeaders.XCorrelationId, MDC.get("behovId"))
         }.body()
     }
 }
