@@ -11,6 +11,7 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpResponseValidator
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.ResponseException
@@ -56,6 +57,11 @@ internal class JournalpostApiHttp(
                 val responseException = exception as? ResponseException ?: return@handleResponseExceptionWithRequest
                 sikkerlogg.error(responseException) { "Kall mot journalpostapi feilet." }
                 throw responseException
+            }
+        }
+        install(HttpRequestRetry) {
+            modifyRequest { request ->
+                request.headers.append("x-retry-count", retryCount.toString())
             }
         }
         install(ContentNegotiation) {
