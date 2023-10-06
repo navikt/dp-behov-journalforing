@@ -25,6 +25,7 @@ internal object App : RapidsConnection.StatusListener {
         )
         RapporteringJournalføringBehovLøser(
             it,
+            FillagerHttp(tokenProvider = mellomlagringTokenProvider),
             JournalpostApiHttp(tokenProvider = dokarkivTokenProvider)
         )
     }

@@ -6,6 +6,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import mu.KotlinLogging
 import mu.withLoggingContext
+import no.nav.dagpenger.behov.journalforing.fillager.FilURN
+import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
@@ -18,6 +20,7 @@ import no.nav.helse.rapids_rivers.River
 
 internal class RapporteringJournalføringBehovLøser(
     rapidsConnection: RapidsConnection,
+    private val fillager: Fillager,
     private val journalpostApi: JournalpostApi
 ) : River.PacketListener {
     internal companion object {
@@ -39,6 +42,7 @@ internal class RapporteringJournalføringBehovLøser(
         val periodeId = packet["periodeId"].asText()
         val ident = packet["ident"].asText()
         val behovId = packet["@behovId"].asText()
+        val urn = packet["urn"].asText()
 
         withLoggingContext(
             "periodeId" to periodeId,
@@ -48,7 +52,10 @@ internal class RapporteringJournalføringBehovLøser(
                 logg.info("Mottok behov for ny journalpost for periode med id $periodeId")
                 runBlocking(MDCContext()) {
                     val json = packet[BEHOV]["json"]
-                    val dokumenter: List<Dokument> = listOf(opprettDokument(json.asText().encodeToByteArray()))
+                    val dokumenter: List<Dokument> = listOf(
+                        opprettDokument(Filtype.JSON, Format.ORIGINAL, json.asText().encodeToByteArray()),
+                        opprettDokument(Filtype.PDF, Format.ARKIV, fillager.hentFil(FilURN(urn), ident))
+                    )
                     sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
                     sikkerlogg.info { "Oppretter journalost basert på ${packet.toJson()}" }
                     val journalpost = journalpostApi.opprett(
@@ -58,8 +65,7 @@ internal class RapporteringJournalføringBehovLøser(
                         tilleggsopplysninger = listOf(Pair("periodeId", periodeId))
                     )
                     packet["@løsning"] = mapOf(
-                        "journalpostId" to journalpost.id,
-                        "json" to json
+                        "journalpostId" to journalpost.id
                     )
                     context.publish(packet.toJson())
                     logg.info { "Løser behov $BEHOV med journalpostId=${journalpost.id}" }
@@ -73,15 +79,15 @@ internal class RapporteringJournalføringBehovLøser(
         }
     }
 
-    private fun opprettDokument(json: ByteArray): Dokument {
+    private fun opprettDokument(filtype: Filtype, format: Format, fysiskDokument: ByteArray): Dokument {
         return Dokument(
             brevkode = BREVKODE,
             tittel = DokumentTittelOppslag.hentTittel(BREVKODE),
             varianter = listOf(
                 Variant(
-                    filtype = Filtype.JSON,
-                    format = Format.ORIGINAL,
-                    fysiskDokument = json
+                    filtype = filtype,
+                    format = format,
+                    fysiskDokument = fysiskDokument
                 )
             )
         )
