@@ -89,6 +89,7 @@ internal class JournalpostApiHttp(
         ident: String,
         dokumenter: List<JournalpostApi.Dokument>,
         eksternReferanseId: String,
+        tilleggsopplysninger: List<Pair<String, String>>,
     ): JournalpostApi.Journalpost = client.post {
         url { encodedPath = "$basePath/journalpost" }
         header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
@@ -112,6 +113,7 @@ internal class JournalpostApiHttp(
                         tittel = dokument.tittel,
                     )
                 },
+                tilleggsopplysninger = tilleggsopplysninger.map { Tilleggsopplysning(it.first, it.second) }
             ),
         )
     }.body<Resultat>().let {
@@ -124,6 +126,7 @@ internal class JournalpostApiHttp(
         val bruker: Bruker,
         val dokumenter: List<Dokument>,
         val eksternReferanseId: String,
+        val tilleggsopplysninger: List<Tilleggsopplysning> = emptyList(),
         private val journalposttype: String = "INNGAAENDE",
         private val tema: String = "DAG",
         private val kanal: String = "NAV_NO",
@@ -139,6 +142,11 @@ internal class JournalpostApiHttp(
         val brevkode: String?,
         val dokumentvarianter: List<Dokumentvariant>,
         val tittel: String? = null,
+    )
+
+    private data class Tilleggsopplysning(
+        val nokkel: String,
+        val verdi: String
     )
 
     private data class Dokumentvariant(

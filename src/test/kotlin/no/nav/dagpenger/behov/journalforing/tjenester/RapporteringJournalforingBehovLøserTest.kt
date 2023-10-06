@@ -20,8 +20,9 @@ internal class RapporteringJournalføringBehovLøserTest {
     @Test
     fun `løser behov for å opprette ny journalpost for rapportering`() {
         val sendteDokumenter = slot<List<JournalpostApi.Dokument>>()
+        val sendteTilleggsopplysninger = slot<List<Pair<String, String>>>()
         coEvery {
-            journalpostApi.opprett(any(), capture(sendteDokumenter), any())
+            journalpostApi.opprett(any(), capture(sendteDokumenter), any(), capture(sendteTilleggsopplysninger))
         } returns Journalpost("journalpost123")
 
         testRapid.sendTestMessage(journalføreRapportering)
@@ -31,6 +32,12 @@ internal class RapporteringJournalføringBehovLøserTest {
             assertEquals(this.brevkode, "M6")
             assertEquals(this.tittel, "Timelister")
             assertEquals(this.varianter.size, 1)
+        }
+
+        assertEquals(1, sendteTilleggsopplysninger.captured.size)
+        with(sendteTilleggsopplysninger.captured[0]) {
+            assertEquals(this.first, "periodeId")
+            assertEquals(this.second, "periodeId123")
         }
 
         with(testRapid.inspektør) {

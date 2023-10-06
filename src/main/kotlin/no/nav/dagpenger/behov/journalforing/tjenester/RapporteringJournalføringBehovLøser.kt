@@ -54,7 +54,8 @@ internal class RapporteringJournalføringBehovLøser(
                     val journalpost = journalpostApi.opprett(
                         ident = ident,
                         dokumenter = dokumenter,
-                        eksternReferanseId = behovId
+                        eksternReferanseId = behovId,
+                        tilleggsopplysninger = listOf(Pair("periodeId", periodeId))
                     )
                     packet["@løsning"] = mapOf(
                         "journalpostId" to journalpost.id,
