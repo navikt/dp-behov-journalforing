@@ -29,21 +29,8 @@ internal class JournalforingBehovLøser(
     internal companion object {
         private val logg = KotlinLogging.logger {}
         private val sikkerlogg = KotlinLogging.logger("tjenestekall")
-        private val skipSet = setOf(
-            "50a844a6-2458-42c6-bc0d-600bc920c108",
-            "f6224540-c224-4631-8e15-e43e03d53a0e",
-            "f3895258-336c-4d2d-94cc-343a07792d24",
-            "35d3bedb-5dfb-41d3-aabf-2bc4626de484",
-            "a94b9257-7b9a-4192-89fc-40ba4589c16f",
-            "5c072228-5c09-456a-a8a1-6d58f203d810",
-            "4f67106c-6188-4a33-bc35-e4fa2792563a",
-            "b12aa808-1f5f-4e28-9d27-c5a0fd6fc8f5",
-            "e0424e22-57c5-46b0-a0b1-6be27714a562",
-            "f1bc7cf8-0c72-4ab3-8899-1c4209e1f624",
-            "ec8d0755-acf7-4fbb-9630-7bc4a588edc9",
-            "c1763c19-9aa0-4746-85a4-53ab2ee75af8",
-            "d5251f23-0a7a-4bed-821c-c08a186ebd0b",
-            "775ddfd8-418b-4097-9001-356fbd4ade27"
+        private val behovIdSkipSet = setOf(
+            "aaac9728-8210-4cc6-b8b6-a2e23e7887b7"
         )
         internal const val NY_JOURNAL_POST = "NyJournalpost"
     }
@@ -67,7 +54,7 @@ internal class JournalforingBehovLøser(
             "behovId" to behovId
         ) {
             logg.info("Mottok behov for ny journalpost med uuid $søknadId")
-            if (skipSet.contains(søknadId)) return
+            if (behovIdSkipSet.contains(behovId)) return
             runBlocking(MDCContext()) {
                 val hovedDokument = packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
                     val brevkode = when (jsonNode.skjemakode()) {
