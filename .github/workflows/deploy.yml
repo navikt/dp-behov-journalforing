@@ -9,6 +9,10 @@ jobs:
   build:
     name: Build and publish Docker image
     runs-on: ubuntu-latest
+    permissions: # Sjekk https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs
+      contents: write
+      packages: write
+      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
