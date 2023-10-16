@@ -66,39 +66,40 @@ internal class JournalforingBehovLøser(
             "søknadId" to søknadId,
             "behovId" to behovId
         ) {
-            try {
-                logg.info("Mottok behov for ny journalpost med uuid $søknadId")
-                if (skipSet.contains(søknadId)) return
-                runBlocking(MDCContext()) {
-                    val hovedDokument = packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
-                        val brevkode = when (jsonNode.skjemakode()) {
-                            "GENERELL_INNSENDING" -> jsonNode.skjemakode()
-                            else -> innsendingType.brevkode(jsonNode.skjemakode())
-                        }
-                        val dokument = jsonNode.toDokument(ident, brevkode)
-                        dokument.copy(varianter = dokument.varianter + faktahenter.hentJsonSøknad(søknadId))
+            logg.info("Mottok behov for ny journalpost med uuid $søknadId")
+            if (skipSet.contains(søknadId)) return
+            runBlocking(MDCContext()) {
+                val hovedDokument = packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
+                    val brevkode = when (jsonNode.skjemakode()) {
+                        "GENERELL_INNSENDING" -> jsonNode.skjemakode()
+                        else -> innsendingType.brevkode(jsonNode.skjemakode())
                     }
-                    val dokumenter: List<Dokument> =
-                        listOf(hovedDokument) + packet[NY_JOURNAL_POST]["dokumenter"].map { it.toDokument(ident) }
+                    val dokument = jsonNode.toDokument(ident, brevkode)
+                    dokument.copy(varianter = dokument.varianter + faktahenter.hentJsonSøknad(søknadId))
+                }
+                val dokumenter: List<Dokument> =
+                    listOf(hovedDokument) + packet[NY_JOURNAL_POST]["dokumenter"].map { it.toDokument(ident) }
 
-                    sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
-                    sikkerlogg.info { "Oppretter journalost basert på ${packet.toJson()}" }
-                    val journalpost = journalpostApi.opprett(
+                sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
+                sikkerlogg.info { "Oppretter journalost basert på ${packet.toJson()}" }
+                try {
+                    journalpostApi.opprett(
                         ident = ident,
                         dokumenter = dokumenter,
                         eksternReferanseId = behovId
-                    )
-                    packet["@løsning"] = mapOf(
-                        NY_JOURNAL_POST to journalpost.id
-                    )
-                    context.publish(packet.toJson())
-                    logg.info { "Løser behov $NY_JOURNAL_POST med journalpostId=${journalpost.id}" }
+                    ).let { journalpost ->
+                        packet["@løsning"] = mapOf(
+                            NY_JOURNAL_POST to journalpost.id
+                        )
+                        context.publish(packet.toJson())
+                    }
+                } catch (e: ClientRequestException) {
+                    if (e.response.status == HttpStatusCode.InternalServerError) {
+                        sikkerlogg.warn(e) { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly." }
+                    }
+                    sikkerlogg.error { "Opprettelse av  journalpost med $dokumenter feilet" }
+                    throw e
                 }
-            } catch (e: ClientRequestException) {
-                if (e.response.status == HttpStatusCode.InternalServerError) {
-                    sikkerlogg.warn(e) { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly." }
-                }
-                throw e
             }
         }
     }
