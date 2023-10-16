@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.stringType
 import io.ktor.client.HttpClient
@@ -90,38 +89,33 @@ internal class JournalpostApiHttp(
         ident: String,
         dokumenter: List<JournalpostApi.Dokument>,
         eksternReferanseId: String,
-    ): JournalpostApi.Journalpost {
-        val journalpost = Journalpost(
-            avsenderMottaker = Bruker(ident),
-            bruker = Bruker(ident),
-            eksternReferanseId = eksternReferanseId,
-            dokumenter = dokumenter.map { dokument ->
-                Dokument(
-                    brevkode = dokument.brevkode,
-                    dokumentvarianter = dokument.varianter.map { variant ->
-                        Dokumentvariant(
-                            Filtype.valueOf(variant.filtype.toString()),
-                            Variant.valueOf(variant.format.toString()),
-                            Base64.getEncoder().encodeToString(variant.fysiskDokument),
-                        )
-                    },
-                    tittel = dokument.tittel,
-                )
-            },
-        ).also {
-            sikkerlogg.info("journalpost: ${jacksonObjectMapper().writeValueAsString(it)}")
-        }
-        return client.post {
-            url { encodedPath = "$basePath/journalpost" }
-            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-            header(HttpHeaders.XRequestId, eksternReferanseId)
-            contentType(ContentType.Application.Json)
-            setBody(
-                journalpost,
-            )
-        }.body<Resultat>().let {
-            Journalpost(it.journalpostId)
-        }
+    ): JournalpostApi.Journalpost = client.post {
+        url { encodedPath = "$basePath/journalpost" }
+        header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
+        header(HttpHeaders.XRequestId, eksternReferanseId)
+        contentType(ContentType.Application.Json)
+        setBody(
+            Journalpost(
+                avsenderMottaker = Bruker(ident),
+                bruker = Bruker(ident),
+                eksternReferanseId = eksternReferanseId,
+                dokumenter = dokumenter.map { dokument ->
+                    Dokument(
+                        brevkode = dokument.brevkode,
+                        dokumentvarianter = dokument.varianter.map { variant ->
+                            Dokumentvariant(
+                                Filtype.valueOf(variant.filtype.toString()),
+                                Variant.valueOf(variant.format.toString()),
+                                Base64.getEncoder().encodeToString(variant.fysiskDokument),
+                            )
+                        },
+                        tittel = dokument.tittel,
+                    )
+                },
+            ),
+        )
+    }.body<Resultat>().let {
+        Journalpost(it.journalpostId)
     }
 
     @JsonAutoDetect(fieldVisibility = Visibility.ANY)
