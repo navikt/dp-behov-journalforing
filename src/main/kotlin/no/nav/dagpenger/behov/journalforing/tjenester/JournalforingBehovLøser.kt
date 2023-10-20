@@ -29,22 +29,7 @@ internal class JournalforingBehovLøser(
     internal companion object {
         private val logg = KotlinLogging.logger {}
         private val sikkerlogg = KotlinLogging.logger("tjenestekall")
-        private val skipSet = setOf(
-            "50a844a6-2458-42c6-bc0d-600bc920c108",
-            "f6224540-c224-4631-8e15-e43e03d53a0e",
-            "f3895258-336c-4d2d-94cc-343a07792d24",
-            "35d3bedb-5dfb-41d3-aabf-2bc4626de484",
-            "a94b9257-7b9a-4192-89fc-40ba4589c16f",
-            "5c072228-5c09-456a-a8a1-6d58f203d810",
-            "4f67106c-6188-4a33-bc35-e4fa2792563a",
-            "b12aa808-1f5f-4e28-9d27-c5a0fd6fc8f5",
-            "e0424e22-57c5-46b0-a0b1-6be27714a562",
-            "f1bc7cf8-0c72-4ab3-8899-1c4209e1f624",
-            "ec8d0755-acf7-4fbb-9630-7bc4a588edc9",
-            "c1763c19-9aa0-4746-85a4-53ab2ee75af8",
-            "d5251f23-0a7a-4bed-821c-c08a186ebd0b",
-            "775ddfd8-418b-4097-9001-356fbd4ade27"
-        )
+        private val behovIdSkipSet = emptySet<String>()
         internal const val NY_JOURNAL_POST = "NyJournalpost"
     }
 
@@ -66,39 +51,40 @@ internal class JournalforingBehovLøser(
             "søknadId" to søknadId,
             "behovId" to behovId
         ) {
-            try {
-                logg.info("Mottok behov for ny journalpost med uuid $søknadId")
-                if (skipSet.contains(søknadId)) return
-                runBlocking(MDCContext()) {
-                    val hovedDokument = packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
-                        val brevkode = when (jsonNode.skjemakode()) {
-                            "GENERELL_INNSENDING" -> jsonNode.skjemakode()
-                            else -> innsendingType.brevkode(jsonNode.skjemakode())
-                        }
-                        val dokument = jsonNode.toDokument(ident, brevkode)
-                        dokument.copy(varianter = dokument.varianter + faktahenter.hentJsonSøknad(søknadId))
+            logg.info("Mottok behov for ny journalpost med uuid $søknadId")
+            if (behovIdSkipSet.contains(behovId)) return
+            runBlocking(MDCContext()) {
+                val hovedDokument = packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
+                    val brevkode = when (jsonNode.skjemakode()) {
+                        "GENERELL_INNSENDING" -> jsonNode.skjemakode()
+                        else -> innsendingType.brevkode(jsonNode.skjemakode())
                     }
-                    val dokumenter: List<Dokument> =
-                        listOf(hovedDokument) + packet[NY_JOURNAL_POST]["dokumenter"].map { it.toDokument(ident) }
+                    val dokument = jsonNode.toDokument(ident, brevkode)
+                    dokument.copy(varianter = dokument.varianter + faktahenter.hentJsonSøknad(søknadId))
+                }
+                val dokumenter: List<Dokument> =
+                    listOf(hovedDokument) + packet[NY_JOURNAL_POST]["dokumenter"].map { it.toDokument(ident) }
 
-                    sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
-                    sikkerlogg.info { "Oppretter journalost basert på ${packet.toJson()}" }
-                    val journalpost = journalpostApi.opprett(
+                sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
+                sikkerlogg.info { "Oppretter journalost basert på ${packet.toJson()}" }
+                try {
+                    journalpostApi.opprett(
                         ident = ident,
                         dokumenter = dokumenter,
                         eksternReferanseId = behovId
-                    )
-                    packet["@løsning"] = mapOf(
-                        NY_JOURNAL_POST to journalpost.id
-                    )
-                    context.publish(packet.toJson())
-                    logg.info { "Løser behov $NY_JOURNAL_POST med journalpostId=${journalpost.id}" }
+                    ).let { journalpost ->
+                        packet["@løsning"] = mapOf(
+                            NY_JOURNAL_POST to journalpost.id
+                        )
+                        context.publish(packet.toJson())
+                    }
+                } catch (e: ClientRequestException) {
+                    if (e.response.status == HttpStatusCode.InternalServerError) {
+                        sikkerlogg.warn(e) { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly." }
+                    }
+                    sikkerlogg.error { "Opprettelse av  journalpost med $dokumenter feilet" }
+                    throw e
                 }
-            } catch (e: ClientRequestException) {
-                if (e.response.status == HttpStatusCode.InternalServerError) {
-                    sikkerlogg.warn(e) { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly." }
-                }
-                throw e
             }
         }
     }
