@@ -32,15 +32,23 @@ internal class RapporteringJournalføringBehovLøser(
 
     init {
         River(rapidsConnection).apply {
+            validate { it.demandValue("@event_name", "behov") }
             validate { it.demandAll("@behov", listOf(BEHOV)) }
             validate { it.rejectKey("@løsning") }
-            validate { it.requireKey("@behovId", "periodeId", "ident", BEHOV) }
+            validate { it.requireKey("@behovId", "ident") }
+            validate {
+                it.require(BEHOV) { behov ->
+                    behov.required("periodeId")
+                    behov.required("json")
+                    behov.required("urn")
+                }
+            }
         }.register(this)
     }
 
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
-        val periodeId = packet["periodeId"].asText()
         val ident = packet["ident"].asText()
+        val periodeId = packet[BEHOV]["periodeId"].asText()
         val behovId = packet["@behovId"].asText()
 
         withLoggingContext(

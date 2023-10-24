@@ -27,21 +27,17 @@ internal class RapporteringJournalføringBehovLøserTest {
       "@behov": [
         "JournalføreRapportering"
       ],
+      "meldingsreferanseId":"d0ce2eef-ab53-4b06-acf3-4c85386dc561",
       "ident": "$ident",
-      "periodeId": "$periodeId",
-      "JournalføreRapportering": {
-        "json": "{\"key1\": \"value1\"}",
-        "urn": "urn:vedlegg:periodeId/netto.pdf"
+      "JournalføreRapportering":{
+          "periodeId": "$periodeId",
+          "json": "{\"key1\": \"value1\"}",
+          "urn": "urn:vedlegg:periodeId/netto.pdf"
       },
-      "@id": "c1116672-9057-406b-93e1-7198f7282126",
-      "@opprettet": "2022-09-26T09:47:25.411111",
+      "@id": "30ef9625-196a-445b-9b4e-67e0e6a5118d",
+      "@opprettet": "2023-10-23T18:53:08.056035121",
       "system_read_count": 0,
-      "system_participating_services": [
-        {
-          "id": "c1116672-9057-406b-93e1-7198f7282126",
-          "time": "2022-09-26T09:47:25.411111"
-        }
-      ]
+      "system_participating_services":[{"id": "30ef9625-196a-445b-9b4e-67e0e6a5118d", "service": "dp-rapportering"}]
     }
     """.trimIndent()
 
