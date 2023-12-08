@@ -37,3 +37,5 @@ spec:
   env:
     - name: DOKARKIV_INGRESS
       value: {{ dokarkiv.ingress }}
+    - name: JAVA_OPTS
+      value: -XX:MaxRAMPercentage=75.0
