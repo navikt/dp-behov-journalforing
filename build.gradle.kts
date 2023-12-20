@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 plugins {
     application
     kotlin("jvm") version Kotlin.version
-    id("org.jmailen.kotlinter") version "3.9.0"
+    id("org.jmailen.kotlinter") version "4.1.0"
     kotlin("plugin.serialization") version Kotlin.version
 }
 
@@ -28,7 +28,7 @@ dependencies {
 
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
-    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.10.22-09.05.6fcf3395aa4f")
+    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2023.12.20-09.10.d437884c245f")
     implementation(Ktor2.Client.library("core"))
     implementation(Ktor2.Client.library("cio"))
     implementation(Ktor2.Client.library("content-negotiation"))
