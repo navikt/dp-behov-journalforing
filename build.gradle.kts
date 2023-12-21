@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 plugins {
     application
     kotlin("jvm") version Kotlin.version
-    id("org.jmailen.kotlinter") version "3.9.0"
+    id("org.jmailen.kotlinter") version "4.1.0"
     kotlin("plugin.serialization") version Kotlin.version
 }
 
