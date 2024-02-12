@@ -28,7 +28,7 @@ dependencies {
 
     implementation(Konfig.konfig)
     implementation(Kotlin.Logging.kotlinLogging)
-    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.10.22-09.05.6fcf3395aa4f")
+    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2024.02.09-21.37.2e3547bc83d7")
     implementation(Ktor2.Client.library("core"))
     implementation(Ktor2.Client.library("cio"))
     implementation(Ktor2.Client.library("content-negotiation"))
