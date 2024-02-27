@@ -93,7 +93,7 @@ internal class JournalpostApiHttp(
     ): JournalpostApi.Journalpost = client.post {
         url { encodedPath = "$basePath/journalpost" }
         header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-        header(HttpHeaders.XRequestId, eksternReferanseId)
+        header(HttpHeaders.XCorrelationId, eksternReferanseId)
         contentType(ContentType.Application.Json)
         setBody(
             Journalpost(
