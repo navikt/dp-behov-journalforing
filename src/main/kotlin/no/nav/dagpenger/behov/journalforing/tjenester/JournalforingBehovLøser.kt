@@ -76,7 +76,9 @@ internal class JournalforingBehovLøser(
                         packet["@løsning"] = mapOf(
                             NY_JOURNAL_POST to journalpost.id
                         )
-                        context.publish(packet.toJson())
+                        val message = packet.toJson()
+                        context.publish(message)
+                        sikkerlogg.info { "Sendt ut løsning $message" }
                     }
                 } catch (e: ClientRequestException) {
                     if (e.response.status == HttpStatusCode.InternalServerError) {
