@@ -36,35 +36,39 @@ internal class JournalpostApiHttpTest {
     fun `oppretter journalposter`(status: Int) {
         val eksternReferanseId = UUID.randomUUID().toString()
         runBlocking {
-            val mockEngine = MockEngine {
-                respond(
-                    content = ByteReadChannel(dummyResponse),
-                    status = HttpStatusCode.fromValue(status),
-                    headers = headersOf(HttpHeaders.ContentType, "application/json")
-                )
-            }
-            val apiClient = JournalpostApiHttp(mockEngine, mockk(relaxed = true))
-            val journalpost = apiClient.opprett(
-                "brukerident",
-                listOf(
-                    Dokument(
-                        brevkode = "123",
-                        tittel = "dagpengersøknad",
-                        varianter = listOf(
-                            Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
-                            Variant(PDF, FULLVERSJON, fysiskDokument = ByteArray(2))
-                        )
-                    ),
-                    Dokument(
-                        brevkode = "456",
-                        tittel = "vedleggtittel",
-                        varianter = listOf(
-                            Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2))
-                        )
+            val mockEngine =
+                MockEngine {
+                    respond(
+                        content = ByteReadChannel(dummyResponse),
+                        status = HttpStatusCode.fromValue(status),
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
                     )
-                ),
-                eksternReferanseId
-            )
+                }
+            val apiClient = JournalpostApiHttp(mockEngine, mockk(relaxed = true))
+            val journalpost =
+                apiClient.opprett(
+                    "brukerident",
+                    listOf(
+                        Dokument(
+                            brevkode = "123",
+                            tittel = "dagpengersøknad",
+                            varianter =
+                                listOf(
+                                    Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
+                                    Variant(PDF, FULLVERSJON, fysiskDokument = ByteArray(2)),
+                                ),
+                        ),
+                        Dokument(
+                            brevkode = "456",
+                            tittel = "vedleggtittel",
+                            varianter =
+                                listOf(
+                                    Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
+                                ),
+                        ),
+                    ),
+                    eksternReferanseId,
+                )
 
             with(mockEngine.requestHistory.first()) {
                 val journalpost = jacksonObjectMapper.readTree(this.body.toByteReadPacket().readText())
@@ -94,13 +98,14 @@ internal class JournalpostApiHttpTest {
     @Test
     fun `kaster exception ved ekte feil`() {
         runBlocking {
-            val mockEngine = MockEngine {
-                respond(
-                    content = ByteReadChannel(exceptionResponse),
-                    status = HttpStatusCode.BadRequest,
-                    headers = headersOf(HttpHeaders.ContentType, "application/json")
-                )
-            }
+            val mockEngine =
+                MockEngine {
+                    respond(
+                        content = ByteReadChannel(exceptionResponse),
+                        status = HttpStatusCode.BadRequest,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                    )
+                }
             val apiClient = JournalpostApiHttp(mockEngine, mockk(relaxed = true))
             assertThrows<ClientRequestException> {
                 apiClient.opprett("brukerident", listOf(), UUID.randomUUID().toString())
@@ -110,19 +115,23 @@ internal class JournalpostApiHttpTest {
 }
 
 @Language("JSON")
-private val dummyResponse = """{
-  "dokumenter": [
+private val dummyResponse =
+    """
     {
-      "dokumentInfoId": "123"
+      "dokumenter": [
+        {
+          "dokumentInfoId": "123"
+        }
+      ],
+      "journalpostId": "467010363",
+      "journalpostferdigstilt": true
     }
-  ],
-  "journalpostId": "467010363",
-  "journalpostferdigstilt": true
-}
-""".trimIndent()
+    """.trimIndent()
 
 @Language("JSON")
-private val exceptionResponse = """{
-    "error": "feil"
-}
-""".trimIndent()
+private val exceptionResponse =
+    """
+    {
+        "error": "feil"
+    }
+    """.trimIndent()

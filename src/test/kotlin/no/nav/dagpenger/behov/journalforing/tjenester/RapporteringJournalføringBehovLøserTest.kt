@@ -20,36 +20,39 @@ internal class RapporteringJournalføringBehovLøserTest {
     private val json = "{\"key1\": \"value1\"}"
     private val pdf = "PdfGenerertFraJSON"
 
-    private val journalføreRapportering = """
-    {
-      "@event_name": "behov",
-      "@behovId": "$behovId",
-      "@behov": [
-        "JournalføreRapportering"
-      ],
-      "meldingsreferanseId":"d0ce2eef-ab53-4b06-acf3-4c85386dc561",
-      "ident": "$ident",
-      "JournalføreRapportering":{
-          "periodeId": "$periodeId",
-          "json": "{\"key1\": \"value1\"}",
-          "urn": "urn:vedlegg:periodeId/netto.pdf"
-      },
-      "@id": "30ef9625-196a-445b-9b4e-67e0e6a5118d",
-      "@opprettet": "2023-10-23T18:53:08.056035121",
-      "system_read_count": 0,
-      "system_participating_services":[{"id": "30ef9625-196a-445b-9b4e-67e0e6a5118d", "service": "dp-rapportering"}]
-    }
-    """.trimIndent()
+    private val journalføreRapportering =
+        """
+        {
+          "@event_name": "behov",
+          "@behovId": "$behovId",
+          "@behov": [
+            "JournalføreRapportering"
+          ],
+          "meldingsreferanseId":"d0ce2eef-ab53-4b06-acf3-4c85386dc561",
+          "ident": "$ident",
+          "JournalføreRapportering":{
+              "periodeId": "$periodeId",
+              "json": "{\"key1\": \"value1\"}",
+              "urn": "urn:vedlegg:periodeId/netto.pdf"
+          },
+          "@id": "30ef9625-196a-445b-9b4e-67e0e6a5118d",
+          "@opprettet": "2023-10-23T18:53:08.056035121",
+          "system_read_count": 0,
+          "system_participating_services":[{"id": "30ef9625-196a-445b-9b4e-67e0e6a5118d", "service": "dp-rapportering"}]
+        }
+        """.trimIndent()
 
-    private val fillager = mockk<Fillager>().also {
-        coEvery {
-            it.hentFil(any(), eq(ident))
-        } returns pdf.toByteArray()
-    }
+    private val fillager =
+        mockk<Fillager>().also {
+            coEvery {
+                it.hentFil(any(), eq(ident))
+            } returns pdf.toByteArray()
+        }
     private val journalpostApi = mockk<JournalpostApi>()
-    private val testRapid = TestRapid().also {
-        RapporteringJournalføringBehovLøser(it, fillager, journalpostApi)
-    }
+    private val testRapid =
+        TestRapid().also {
+            RapporteringJournalføringBehovLøser(it, fillager, journalpostApi)
+        }
 
     @Test
     fun `løser behov for å opprette ny journalpost for rapportering`() {
@@ -60,7 +63,7 @@ internal class RapporteringJournalføringBehovLøserTest {
                 eq(ident),
                 capture(sendteDokumenter),
                 eq(behovId),
-                capture(sendteTilleggsopplysninger)
+                capture(sendteTilleggsopplysninger),
             )
         } returns Journalpost(journalpostId)
 

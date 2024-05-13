@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 plugins {
     application
     kotlin("jvm") version Kotlin.version
-    id("org.jmailen.kotlinter") version "3.9.0"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
     kotlin("plugin.serialization") version Kotlin.version
 }
 
@@ -18,9 +18,7 @@ application {
 }
 
 kotlin {
-    jvmToolchain {
-        (this as JavaToolchainSpec).languageVersion.set(JavaLanguageVersion.of(17))
-    }
+    jvmToolchain(21)
 }
 
 dependencies {

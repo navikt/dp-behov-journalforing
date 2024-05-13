@@ -21,7 +21,7 @@ import no.nav.helse.rapids_rivers.River
 internal class RapporteringJournalføringBehovLøser(
     rapidsConnection: RapidsConnection,
     private val fillager: Fillager,
-    private val journalpostApi: JournalpostApi
+    private val journalpostApi: JournalpostApi,
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
@@ -46,34 +46,40 @@ internal class RapporteringJournalføringBehovLøser(
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         val ident = packet["ident"].asText()
         val periodeId = packet[BEHOV]["periodeId"].asText()
         val behovId = packet["@behovId"].asText()
 
         withLoggingContext(
             "periodeId" to periodeId,
-            "behovId" to behovId
+            "behovId" to behovId,
         ) {
             try {
                 logg.info("Mottok behov for ny journalpost for periode med id $periodeId")
                 runBlocking(MDCContext()) {
                     val json = packet[BEHOV]["json"].asText()
                     val urn = packet[BEHOV]["urn"].asText()
-                    val dokumenter: List<Dokument> = listOf(
-                        opprettDokument(json.encodeToByteArray(), fillager.hentFil(FilURN(urn), ident))
-                    )
+                    val dokumenter: List<Dokument> =
+                        listOf(
+                            opprettDokument(json.encodeToByteArray(), fillager.hentFil(FilURN(urn), ident)),
+                        )
                     sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
                     sikkerlogg.info { "Oppretter journalost basert på ${packet.toJson()}" }
-                    val journalpost = journalpostApi.opprett(
-                        ident = ident,
-                        dokumenter = dokumenter,
-                        eksternReferanseId = behovId,
-                        tilleggsopplysninger = listOf(Pair("periodeId", periodeId))
-                    )
-                    packet["@løsning"] = mapOf(
-                        "journalpostId" to journalpost.id
-                    )
+                    val journalpost =
+                        journalpostApi.opprett(
+                            ident = ident,
+                            dokumenter = dokumenter,
+                            eksternReferanseId = behovId,
+                            tilleggsopplysninger = listOf(Pair("periodeId", periodeId)),
+                        )
+                    packet["@løsning"] =
+                        mapOf(
+                            "journalpostId" to journalpost.id,
+                        )
                     context.publish(packet.toJson())
                     logg.info { "Løser behov $BEHOV med journalpostId=${journalpost.id}" }
                 }
@@ -86,22 +92,26 @@ internal class RapporteringJournalføringBehovLøser(
         }
     }
 
-    private fun opprettDokument(json: ByteArray, pdf: ByteArray): Dokument {
+    private fun opprettDokument(
+        json: ByteArray,
+        pdf: ByteArray,
+    ): Dokument {
         return Dokument(
             brevkode = BREVKODE,
             tittel = DokumentTittelOppslag.hentTittel(BREVKODE),
-            varianter = listOf(
-                Variant(
-                    filtype = Filtype.JSON,
-                    format = Format.ORIGINAL,
-                    fysiskDokument = json
+            varianter =
+                listOf(
+                    Variant(
+                        filtype = Filtype.JSON,
+                        format = Format.ORIGINAL,
+                        fysiskDokument = json,
+                    ),
+                    Variant(
+                        filtype = Filtype.PDFA,
+                        format = Format.ARKIV,
+                        fysiskDokument = pdf,
+                    ),
                 ),
-                Variant(
-                    filtype = Filtype.PDFA,
-                    format = Format.ARKIV,
-                    fysiskDokument = pdf
-                )
-            )
         )
     }
 }

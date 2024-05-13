@@ -18,15 +18,16 @@ internal class SoknadHttp(
     private val tokenProvider: () -> String,
 ) {
     private val baseurl = "http://dp-soknad/arbeid/dagpenger/soknadapi"
-    private val client = HttpClient(engine) {
-        install(Logging) {
-            level = LogLevel.INFO
+    private val client =
+        HttpClient(engine) {
+            install(Logging) {
+                level = LogLevel.INFO
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 60000
+            }
+            expectSuccess = true
         }
-        install(HttpTimeout) {
-            requestTimeoutMillis = 60000
-        }
-        expectSuccess = true
-    }
 
     internal suspend fun hentJsonSøknad(søknadId: String): Variant {
         return client.get("$baseurl/$søknadId/ferdigstilt/fakta") {

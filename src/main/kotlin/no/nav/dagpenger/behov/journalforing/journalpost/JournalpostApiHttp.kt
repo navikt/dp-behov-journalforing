@@ -46,79 +46,83 @@ internal class JournalpostApiHttp(
     private val tokenProvider: () -> String,
     private val basePath: String = "rest/journalpostapi/v1",
 ) : JournalpostApi {
-    private val client = HttpClient(engine) {
-        HttpResponseValidator {
-            validateResponse { response ->
-                if (response.status != HttpStatusCode.Conflict && response.status != HttpStatusCode.Created) {
-                    throw ClientRequestException(response, response.bodyAsText())
+    private val client =
+        HttpClient(engine) {
+            HttpResponseValidator {
+                validateResponse { response ->
+                    if (response.status != HttpStatusCode.Conflict && response.status != HttpStatusCode.Created) {
+                        throw ClientRequestException(response, response.bodyAsText())
+                    }
+                }
+                handleResponseExceptionWithRequest { exception, _ ->
+                    val responseException = exception as? ResponseException ?: return@handleResponseExceptionWithRequest
+                    sikkerlogg.error(responseException) { "Kall mot journalpostapi feilet." }
+                    throw responseException
                 }
             }
-            handleResponseExceptionWithRequest { exception, _ ->
-                val responseException = exception as? ResponseException ?: return@handleResponseExceptionWithRequest
-                sikkerlogg.error(responseException) { "Kall mot journalpostapi feilet." }
-                throw responseException
+            install(HttpRequestRetry) {
+                modifyRequest { request ->
+                    request.headers.append("x-retry-count", retryCount.toString())
+                }
+            }
+            install(ContentNegotiation) {
+                jackson {
+                    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                }
+            }
+            install(Logging) {
+                level = LogLevel.INFO
+            }
+            install(HttpTimeout) {
+                requestTimeoutMillis = 300000
+            }
+            defaultRequest {
+                header("X-Nav-Consumer", "dp-behov-journalforing")
+                url {
+                    protocol = URLProtocol.HTTPS
+                    host = Configuration.properties[Key("DOKARKIV_INGRESS", stringType)]
+                }
             }
         }
-        install(HttpRequestRetry) {
-            modifyRequest { request ->
-                request.headers.append("x-retry-count", retryCount.toString())
-            }
-        }
-        install(ContentNegotiation) {
-            jackson {
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            }
-        }
-        install(Logging) {
-            level = LogLevel.INFO
-        }
-        install(HttpTimeout) {
-            requestTimeoutMillis = 300000
-        }
-        defaultRequest {
-            header("X-Nav-Consumer", "dp-behov-journalforing")
-            url {
-                protocol = URLProtocol.HTTPS
-                host = Configuration.properties[Key("DOKARKIV_INGRESS", stringType)]
-            }
-        }
-    }
 
     override suspend fun opprett(
         ident: String,
         dokumenter: List<JournalpostApi.Dokument>,
         eksternReferanseId: String,
         tilleggsopplysninger: List<Pair<String, String>>,
-    ): JournalpostApi.Journalpost = client.post {
-        url { encodedPath = "$basePath/journalpost" }
-        header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-        header(HttpHeaders.XCorrelationId, eksternReferanseId)
-        contentType(ContentType.Application.Json)
-        setBody(
-            Journalpost(
-                avsenderMottaker = Bruker(ident),
-                bruker = Bruker(ident),
-                eksternReferanseId = eksternReferanseId,
-                dokumenter = dokumenter.map { dokument ->
-                    Dokument(
-                        brevkode = dokument.brevkode,
-                        dokumentvarianter = dokument.varianter.map { variant ->
-                            Dokumentvariant(
-                                Filtype.valueOf(variant.filtype.toString()),
-                                Variant.valueOf(variant.format.toString()),
-                                Base64.getEncoder().encodeToString(variant.fysiskDokument),
+    ): JournalpostApi.Journalpost =
+        client.post {
+            url { encodedPath = "$basePath/journalpost" }
+            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
+            header(HttpHeaders.XCorrelationId, eksternReferanseId)
+            contentType(ContentType.Application.Json)
+            setBody(
+                Journalpost(
+                    avsenderMottaker = Bruker(ident),
+                    bruker = Bruker(ident),
+                    eksternReferanseId = eksternReferanseId,
+                    dokumenter =
+                        dokumenter.map { dokument ->
+                            Dokument(
+                                brevkode = dokument.brevkode,
+                                dokumentvarianter =
+                                    dokument.varianter.map { variant ->
+                                        Dokumentvariant(
+                                            Filtype.valueOf(variant.filtype.toString()),
+                                            Variant.valueOf(variant.format.toString()),
+                                            Base64.getEncoder().encodeToString(variant.fysiskDokument),
+                                        )
+                                    },
+                                tittel = dokument.tittel,
                             )
                         },
-                        tittel = dokument.tittel,
-                    )
-                },
-                tilleggsopplysninger = tilleggsopplysninger.map { Tilleggsopplysning(it.first, it.second) }
-            ),
-        )
-    }.body<Resultat>().let {
-        Journalpost(it.journalpostId)
-    }
+                    tilleggsopplysninger = tilleggsopplysninger.map { Tilleggsopplysning(it.first, it.second) },
+                ),
+            )
+        }.body<Resultat>().let {
+            Journalpost(it.journalpostId)
+        }
 
     @JsonAutoDetect(fieldVisibility = Visibility.ANY)
     private data class Journalpost(
@@ -146,7 +150,7 @@ internal class JournalpostApiHttp(
 
     private data class Tilleggsopplysning(
         val nokkel: String,
-        val verdi: String
+        val verdi: String,
     )
 
     private data class Dokumentvariant(
@@ -155,11 +159,18 @@ internal class JournalpostApiHttp(
         val fysiskDokument: String,
     ) {
         enum class Filtype {
-            PDF, PDFA, JPEG, TIFF, JSON, PNG,
+            PDF,
+            PDFA,
+            JPEG,
+            TIFF,
+            JSON,
+            PNG,
         }
 
         enum class Variant {
-            ARKIV, ORIGINAL, FULLVERSJON,
+            ARKIV,
+            ORIGINAL,
+            FULLVERSJON,
         }
     }
 

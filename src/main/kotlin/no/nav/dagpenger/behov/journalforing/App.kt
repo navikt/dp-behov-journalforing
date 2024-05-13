@@ -16,19 +16,20 @@ fun main() {
 }
 
 internal object App : RapidsConnection.StatusListener {
-    private val rapidsConnection = RapidApplication.create(Configuration.config).also {
-        JournalforingBehovLøser(
-            it,
-            FillagerHttp(tokenProvider = mellomlagringTokenProvider),
-            JournalpostApiHttp(tokenProvider = dokarkivTokenProvider),
-            SoknadHttp(tokenProvider = dpSøknadTokenProvider)
-        )
-        RapporteringJournalføringBehovLøser(
-            it,
-            FillagerHttp(tokenProvider = mellomlagringTokenProvider),
-            JournalpostApiHttp(tokenProvider = dokarkivTokenProvider)
-        )
-    }
+    private val rapidsConnection =
+        RapidApplication.create(Configuration.config).also {
+            JournalforingBehovLøser(
+                it,
+                FillagerHttp(tokenProvider = mellomlagringTokenProvider),
+                JournalpostApiHttp(tokenProvider = dokarkivTokenProvider),
+                SoknadHttp(tokenProvider = dpSøknadTokenProvider),
+            )
+            RapporteringJournalføringBehovLøser(
+                it,
+                FillagerHttp(tokenProvider = mellomlagringTokenProvider),
+                JournalpostApiHttp(tokenProvider = dokarkivTokenProvider),
+            )
+        }
 
     init {
         rapidsConnection.register(this)

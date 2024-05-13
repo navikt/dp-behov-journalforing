@@ -16,20 +16,23 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 internal class JournalforingBehovLøserTest {
-    private val fillager = mockk<Fillager>().also {
-        coEvery {
-            it.hentFil(any(), any())
-        } returns "asdlfkjskljflk".toByteArray()
-    }
+    private val fillager =
+        mockk<Fillager>().also {
+            coEvery {
+                it.hentFil(any(), any())
+            } returns "asdlfkjskljflk".toByteArray()
+        }
     private val journalpostApi = mockk<JournalpostApi>()
-    private val faktahenter = mockk<SoknadHttp>().also {
-        coEvery {
-            it.hentJsonSøknad(any())
-        } returns JournalpostApi.Variant(JSON, Format.ORIGINAL, "{}".toByteArray())
-    }
-    private val testRapid = TestRapid().also {
-        JournalforingBehovLøser(it, fillager, journalpostApi, faktahenter)
-    }
+    private val faktahenter =
+        mockk<SoknadHttp>().also {
+            coEvery {
+                it.hentJsonSøknad(any())
+            } returns JournalpostApi.Variant(JSON, Format.ORIGINAL, "{}".toByteArray())
+        }
+    private val testRapid =
+        TestRapid().also {
+            JournalforingBehovLøser(it, fillager, journalpostApi, faktahenter)
+        }
 
     @Test
     fun `løser behov for å opprette ny journalpost for dagpenger`() {
@@ -90,81 +93,84 @@ internal class JournalforingBehovLøserTest {
 }
 
 @Language("JSON")
-val dagpengerInnsending = """{
-  "@event_name": "behov",
-  "@behovId": "34f6743c-bd9a-4902-ae68-fae0171b1e68",
-  "@behov": [
-    "NyJournalpost"
-  ],
-  "søknad_uuid": "19185bc3-7752-48c3-9886-c429c76b5041",
-  "ident": "12345678913",
-  "type": "NY_DIALOG",
-  "innsendingId": "d0664505-e546-4cef-9e3f-8f49b85afb58",
-  "NyJournalpost": {
-    "hovedDokument": {
-      "skjemakode": "04-01.03",
-      "varianter": [
-        {
-          "filnavn": "netto.pdf",
-          "urn": "urn:vedlegg:soknadId/netto.pdf",
-          "variant": "ARKIV",
-          "type": "PDF"
+val dagpengerInnsending =
+    """
+    {
+      "@event_name": "behov",
+      "@behovId": "34f6743c-bd9a-4902-ae68-fae0171b1e68",
+      "@behov": [
+        "NyJournalpost"
+      ],
+      "søknad_uuid": "19185bc3-7752-48c3-9886-c429c76b5041",
+      "ident": "12345678913",
+      "type": "NY_DIALOG",
+      "innsendingId": "d0664505-e546-4cef-9e3f-8f49b85afb58",
+      "NyJournalpost": {
+        "hovedDokument": {
+          "skjemakode": "04-01.03",
+          "varianter": [
+            {
+              "filnavn": "netto.pdf",
+              "urn": "urn:vedlegg:soknadId/netto.pdf",
+              "variant": "ARKIV",
+              "type": "PDF"
+            },
+            {
+              "filnavn": "brutto.pdf",
+              "urn": "urn:vedlegg:soknadId/brutto.pdf",
+              "variant": "FULLVERSJON",
+              "type": "PDF"
+            }
+          ]
         },
-        {
-          "filnavn": "brutto.pdf",
-          "urn": "urn:vedlegg:soknadId/brutto.pdf",
-          "variant": "FULLVERSJON",
-          "type": "PDF"
-        }
-      ]
-    },
-    "dokumenter": [
-      {
-        "skjemakode": "DOK1",
-        "varianter": [
+        "dokumenter": [
           {
-            "filnavn": "DOK1A",
-            "urn": "urn:vedlegg:soknadId/dok1a.pdf",
-            "variant": "ARKIV",
-            "type": "PDF"
+            "skjemakode": "DOK1",
+            "varianter": [
+              {
+                "filnavn": "DOK1A",
+                "urn": "urn:vedlegg:soknadId/dok1a.pdf",
+                "variant": "ARKIV",
+                "type": "PDF"
+              },
+              {
+                "filnavn": "DOK1B",
+                "urn": "urn:vedlegg:soknadId/dok1b.pdf",
+                "variant": "FULLVERSJON",
+                "type": "PDF"
+              }
+            ]
           },
           {
-            "filnavn": "DOK1B",
-            "urn": "urn:vedlegg:soknadId/dok1b.pdf",
-            "variant": "FULLVERSJON",
-            "type": "PDF"
+            "skjemakode": "DOK2",
+            "varianter": [
+              {
+                "filnavn": "dok2.pdf",
+                "urn": "urn:vedlegg:soknadId/dok2.pdf",
+                "variant": "ARKIV",
+                "type": "PDF"
+              }
+            ]
           }
         ]
       },
-      {
-        "skjemakode": "DOK2",
-        "varianter": [
-          {
-            "filnavn": "dok2.pdf",
-            "urn": "urn:vedlegg:soknadId/dok2.pdf",
-            "variant": "ARKIV",
-            "type": "PDF"
-          }
-        ]
-      }
-    ]
-  },
-  "hovedDokument": {},
-  "dokumenter": [],
-  "@id": "c1116672-9057-406b-93e1-7198f7282126",
-  "@opprettet": "2022-09-26T09:47:25.411111",
-  "system_read_count": 0,
-  "system_participating_services": [
-    {
-      "id": "c1116672-9057-406b-93e1-7198f7282126",
-      "time": "2022-09-26T09:47:25.411111"
+      "hovedDokument": {},
+      "dokumenter": [],
+      "@id": "c1116672-9057-406b-93e1-7198f7282126",
+      "@opprettet": "2022-09-26T09:47:25.411111",
+      "system_read_count": 0,
+      "system_participating_services": [
+        {
+          "id": "c1116672-9057-406b-93e1-7198f7282126",
+          "time": "2022-09-26T09:47:25.411111"
+        }
+      ]
     }
-  ]
-}
-""".trimIndent()
+    """.trimIndent()
 
 @Language("JSON")
-private val generellInnsending: String = """
+private val generellInnsending: String =
+    """
     {
       "@event_name": "behov",
       "@behovId": "34f6743c-bd9a-4902-ae68-fae0171b1e68",
@@ -227,4 +233,4 @@ private val generellInnsending: String = """
     }
     
     
-""".trimIndent()
+    """.trimIndent()

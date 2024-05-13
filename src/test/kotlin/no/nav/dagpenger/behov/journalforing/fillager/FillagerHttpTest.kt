@@ -18,13 +18,14 @@ class FillagerHttpTest {
     @Test
     fun `svarer med innholdet i fila`() {
         runBlocking {
-            val mockEngine = MockEngine {
-                respond(
-                    content = ByteReadChannel("flott fil"),
-                    status = HttpStatusCode.OK,
-                    headers = headersOf(HttpHeaders.ContentType, "application/json"),
-                )
-            }
+            val mockEngine =
+                MockEngine {
+                    respond(
+                        content = ByteReadChannel("flott fil"),
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                    )
+                }
             val apiClient = FillagerHttp(mockEngine) { "token" }
 
             assertEquals(9, apiClient.hentFil(FilURN("urn:vedlegg:id/fil"), testFnr).size)

@@ -18,11 +18,11 @@ object Cucumber {
     const val version = "4.8.0"
     const val java8 = "io.cucumber:cucumber-java8:$version"
     const val junit = "io.cucumber:cucumber-junit:$version"
+
     fun library(name: String) = "io.cucumber:cucumber-$name:$version"
 }
 
 object Dagpenger {
-
     object Biblioteker {
         const val version = "2023.01.16-10.20.e8450fdff15a"
         const val stsKlient = "com.github.navikt.dp-biblioteker:sts-klient:$version"
@@ -61,6 +61,7 @@ object Fuel {
     const val version = "2.2.1"
     const val fuel = "com.github.kittinunf.fuel:fuel:$version"
     const val fuelMoshi = "com.github.kittinunf.fuel:fuel-moshi:$version"
+
     fun library(name: String) = "com.github.kittinunf.fuel:fuel-$name:$version"
 }
 
@@ -82,6 +83,7 @@ object Junit5 {
     const val engine = "org.junit.jupiter:junit-jupiter-engine:$version"
     const val vintageEngine = "org.junit.vintage:junit-vintage-engine:$version"
     const val kotlinRunner = "io.kotlintest:kotlintest-runner-junit5:3.4.2"
+
     fun library(name: String) = "org.junit.jupiter:junit-jupiter-$name:$version"
 }
 
@@ -100,11 +102,13 @@ object Kafka {
     const val clients = "org.apache.kafka:kafka-clients:$version"
     const val streams = "org.apache.kafka:kafka-streams:$version"
     const val streamTestUtils = "org.apache.kafka:kafka-streams-test-utils:$version"
+
     fun library(name: String) = "org.apache.kafka:kafka-$name:$version"
 
     object Confluent {
         const val version = "7.3.0"
         const val avroStreamSerdes = "io.confluent:kafka-streams-avro-serde:$version"
+
         fun library(name: String) = "io.confluent:$name:$version"
     }
 }
@@ -118,11 +122,12 @@ object Konfig {
 }
 
 object Kotlin {
-    const val version = "1.8.10"
+    const val version = "1.9.24"
     const val stdlib = "org.jetbrains.kotlin:kotlin-stdlib:$version"
 
     object Coroutines {
         const val version = "1.6.4"
+
         fun module(name: String) = "org.jetbrains.kotlinx:kotlinx-coroutines-$name:$version"
     }
 
@@ -161,14 +166,17 @@ object Ktor {
     const val locations = "io.ktor:ktor-locations:$version"
     const val micrometerMetrics = "io.ktor:ktor-metrics-micrometer:$version"
     const val ktorTest = "io.ktor:ktor-server-test-host:$version"
+
     fun library(name: String) = "io.ktor:ktor-$name:$version"
 }
 
 object Ktor2 {
     const val version = "2.3.0"
+
     object Client {
         fun library(name: String) = "io.ktor:ktor-client-$name:$version"
     }
+
     object Server {
         fun library(name: String) = "io.ktor:ktor-server-$name:$version"
     }
@@ -201,11 +209,12 @@ object Moshi {
 
     // waiting for https://github.com/rharter/ktor-moshi/pull/8
     const val moshiKtor = "com.github.cs125-illinois:ktor-moshi:2022.9.0"
+
     fun library(name: String) = "com.squareup.moshi:moshi-$name:$version"
 }
 
 object Mockk {
-    const val version = "1.13.4"
+    const val version = "1.13.10"
     const val mockk = "io.mockk:mockk:$version"
 }
 
@@ -219,6 +228,7 @@ object Prometheus {
     const val common = "io.prometheus:simpleclient_common:$version"
     const val hotspot = "io.prometheus:simpleclient_hotspot:$version"
     const val log4j2 = "io.prometheus:simpleclient_log4j2:$version"
+
     fun library(name: String) = "io.prometheus:simpleclient_$name:$version"
 
     object Nare {
@@ -273,5 +283,6 @@ object Graphql {
     const val version = "5.2.0"
     const val graphql = "com.expediagroup.graphql"
     val client = library("client")
+
     fun library(name: String) = "com.expediagroup:graphql-kotlin-$name:$version"
 }
