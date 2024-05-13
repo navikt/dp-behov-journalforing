@@ -3,13 +3,16 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     application
-    kotlin("jvm") version Kotlin.version
+    kotlin("jvm") version "1.9.24"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
-    kotlin("plugin.serialization") version Kotlin.version
+    kotlin("plugin.serialization") version "1.9.24"
 }
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
+    }
     maven("https://jitpack.io")
 }
 
@@ -22,25 +25,20 @@ kotlin {
 }
 
 dependencies {
-    implementation(RapidAndRiversKtor2)
+    implementation(libs.rapids.and.rivers)
 
-    implementation(Konfig.konfig)
-    implementation(Kotlin.Logging.kotlinLogging)
-    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2022.10.22-09.05.6fcf3395aa4f")
-    implementation(Ktor2.Client.library("core"))
-    implementation(Ktor2.Client.library("cio"))
-    implementation(Ktor2.Client.library("content-negotiation"))
-    implementation(Ktor2.Client.library("logging"))
-    implementation("io.ktor:ktor-serialization-jackson:${Ktor2.version}")
-    implementation(Kotlin.Coroutines.module("slf4j"))
-
+    implementation(libs.konfig)
+    implementation(libs.kotlin.logging)
+    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2024.04.19-22.15.14f433acbbcb")
+    implementation(libs.bundles.ktor.client)
+    implementation("io.ktor:ktor-serialization-jackson:${libs.versions.ktor.get()}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.8.1")
     implementation("de.slub-dresden:urnlib:2.0.1")
 
-    implementation(Mockk.mockk)
-
     testImplementation(kotlin("test"))
-    testImplementation(Ktor2.Client.library("mock"))
-    testImplementation(Junit5.library("params"))
+    testImplementation(libs.mockk)
+    testImplementation(libs.ktor.client.mock)
+    testImplementation("org.junit.jupiter:junit-jupiter-params:${libs.versions.junit.get()}")
 }
 
 tasks.withType<Test> {
