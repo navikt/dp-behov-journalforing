@@ -15,36 +15,36 @@ jobs:
       id-token: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/wrapper-validation@v3
+      - uses: gradle/actions/setup-gradle@v3
+        env:
+          # Eksluder test dependencies
+          DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS: compileClasspath|runtimeClasspath
         with:
-          arguments: --configuration-cache check build installDist
+          dependency-graph: generate-and-submit
+      - run: ./gradlew --configuration-cache build
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Publish results (unit test)
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: success() || failure()
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          junit_files: "**/build/test-results/test/TEST-*.xml"
 
-      - name: Build and push
-        uses: docker/build-push-action@v5
+      - name: docker-build-push
+        uses: nais/docker-build-push@v0
+        id: docker-build-push
         with:
-          context: .
-          tags: ${{ env.IMAGE }}
-          push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          team: teamdagpenger
+          tag: ${{ github.sha }}
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+    outputs:
+      image: ${{ steps.docker-build-push.outputs.image }}
 
   deploy-dev:
     name: Deploy to dev
@@ -54,11 +54,11 @@ jobs:
     environment: dev-gcp
     steps:
       - uses: actions/checkout@v4
-      - uses: nais/deploy/actions/deploy@v1
+      - uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: .nais/nais.yaml
+          VAR: image=${{ needs.build.outputs.image }}
           VARS: .nais/vars-dev.yaml
           PRINT_PAYLOAD: true
 
@@ -70,10 +70,10 @@ jobs:
     environment: prod-gcp
     steps:
       - uses: actions/checkout@v4
-      - uses: nais/deploy/actions/deploy@v1
+      - uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: .nais/nais.yaml
+          VAR: image=${{ needs.build.outputs.image }}
           VARS: .nais/vars-prod.yaml
           PRINT_PAYLOAD: true
