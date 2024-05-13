@@ -19,12 +19,14 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import kotlin.math.log10
+import kotlin.math.pow
 
 internal class JournalforingBehovLøser(
     rapidsConnection: RapidsConnection,
     private val fillager: Fillager,
     private val journalpostApi: JournalpostApi,
-    private val faktahenter: SoknadHttp
+    private val faktahenter: SoknadHttp,
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
@@ -41,7 +43,10 @@ internal class JournalforingBehovLøser(
         }.register(this)
     }
 
-    override fun onPacket(packet: JsonMessage, context: MessageContext) {
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+    ) {
         val søknadId = packet["søknad_uuid"].asText()
         val ident = packet["ident"].asText()
         val behovId = packet["@behovId"].asText()
@@ -49,19 +54,25 @@ internal class JournalforingBehovLøser(
 
         withLoggingContext(
             "søknadId" to søknadId,
-            "behovId" to behovId
+            "behovId" to behovId,
         ) {
-            logg.info("Mottok behov for ny journalpost med uuid $søknadId")
+            logg.info(
+                "Mottok behov for ny journalpost med uuid=$søknadId, pakkestørrelse=${
+                    prettyPrintFileSize(packet.toJson().length.toLong())
+                }",
+            )
             if (behovIdSkipSet.contains(behovId)) return
             runBlocking(MDCContext()) {
-                val hovedDokument = packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
-                    val brevkode = when (jsonNode.skjemakode()) {
-                        "GENERELL_INNSENDING" -> jsonNode.skjemakode()
-                        else -> innsendingType.brevkode(jsonNode.skjemakode())
+                val hovedDokument =
+                    packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
+                        val brevkode =
+                            when (jsonNode.skjemakode()) {
+                                "GENERELL_INNSENDING" -> jsonNode.skjemakode()
+                                else -> innsendingType.brevkode(jsonNode.skjemakode())
+                            }
+                        val dokument = jsonNode.toDokument(ident, brevkode)
+                        dokument.copy(varianter = dokument.varianter + faktahenter.hentJsonSøknad(søknadId))
                     }
-                    val dokument = jsonNode.toDokument(ident, brevkode)
-                    dokument.copy(varianter = dokument.varianter + faktahenter.hentJsonSøknad(søknadId))
-                }
                 val dokumenter: List<Dokument> =
                     listOf(hovedDokument) + packet[NY_JOURNAL_POST]["dokumenter"].map { it.toDokument(ident) }
 
@@ -71,11 +82,12 @@ internal class JournalforingBehovLøser(
                     journalpostApi.opprett(
                         ident = ident,
                         dokumenter = dokumenter,
-                        eksternReferanseId = behovId
+                        eksternReferanseId = behovId,
                     ).let { journalpost ->
-                        packet["@løsning"] = mapOf(
-                            NY_JOURNAL_POST to journalpost.id
-                        )
+                        packet["@løsning"] =
+                            mapOf(
+                                NY_JOURNAL_POST to journalpost.id,
+                            )
                         val message = packet.toJson()
                         context.publish(message)
                         sikkerlogg.info { "Sendt ut løsning $message" }
@@ -92,26 +104,40 @@ internal class JournalforingBehovLøser(
     }
 
     private enum class InnsendingType {
-        NY_DIALOG, ETTERSENDING_TIL_DIALOG;
+        NY_DIALOG,
+        ETTERSENDING_TIL_DIALOG,
+        ;
 
-        fun brevkode(skjemakode: String) = when (this) {
-            NY_DIALOG -> "NAV $skjemakode"
-            ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
-        }
+        fun brevkode(skjemakode: String) =
+            when (this) {
+                NY_DIALOG -> "NAV $skjemakode"
+                ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
+            }
     }
 
-    private suspend fun JsonNode.toDokument(ident: String, brevkode: String = this.skjemakode()) =
-        Dokument(
-            brevkode = brevkode,
-            tittel = DokumentTittelOppslag.hentTittel(brevkode),
-            varianter = this["varianter"].map { variant ->
+    private suspend fun JsonNode.toDokument(
+        ident: String,
+        brevkode: String = this.skjemakode(),
+    ) = Dokument(
+        brevkode = brevkode,
+        tittel = DokumentTittelOppslag.hentTittel(brevkode),
+        varianter =
+            this["varianter"].map { variant ->
                 Variant(
                     filtype = Filtype.valueOf(variant["type"].asText()),
                     format = Format.valueOf(variant["variant"].asText()),
-                    fysiskDokument = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
+                    fysiskDokument = fillager.hentFil(FilURN(variant["urn"].asText()), ident),
                 )
-            }
-        )
+            },
+    )
 
     private fun JsonNode.skjemakode(): String = this["skjemakode"].asText()
+}
+
+fun prettyPrintFileSize(size: Long): String {
+    if (size <= 0) return "0 B"
+
+    val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+    val digitGroups = (log10(size.toDouble()) / log10(1024.0)).toInt()
+    return String.format("%.1f %s", size / 1024.0.pow(digitGroups.toDouble()), units[digitGroups])
 }

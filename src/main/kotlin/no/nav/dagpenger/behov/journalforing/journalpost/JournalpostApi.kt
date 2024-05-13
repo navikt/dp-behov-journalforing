@@ -1,5 +1,7 @@
 package no.nav.dagpenger.behov.journalforing.journalpost
 
+import no.nav.dagpenger.behov.journalforing.tjenester.prettyPrintFileSize
+
 internal interface JournalpostApi {
     suspend fun opprett(
         ident: String,
@@ -9,28 +11,36 @@ internal interface JournalpostApi {
     ): Journalpost
 
     data class Journalpost(
-        val id: String
+        val id: String,
     )
 
     data class Dokument(
         val brevkode: String?,
         val tittel: String? = null,
-        val varianter: List<Variant>
+        val varianter: List<Variant>,
     )
 
     data class Variant(
         val filtype: Filtype,
         val format: Format,
-        val fysiskDokument: ByteArray
+        val fysiskDokument: ByteArray,
     ) {
-        override fun toString() = "Variant(filtype=$filtype, format=$format)"
+        override fun toString() =
+            "Variant(filtype=$filtype, format=$format, størrelse=${prettyPrintFileSize(fysiskDokument.size.toLong())} byte)"
 
         enum class Filtype {
-            PDF, PDFA, JPEG, TIFF, JSON, PNG,
+            PDF,
+            PDFA,
+            JPEG,
+            TIFF,
+            JSON,
+            PNG,
         }
 
         enum class Format {
-            ARKIV, ORIGINAL, FULLVERSJON,
+            ARKIV,
+            ORIGINAL,
+            FULLVERSJON,
         }
 
         override fun equals(other: Any?): Boolean {
