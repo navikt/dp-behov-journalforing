@@ -39,6 +39,7 @@ internal class GenerellJournalføringBehovløser(
         val ident = packet.ident()
         val tittel = packet.tittel() ?: "Dagpenger vedtak"
         val behovId = packet.behovId()
+        val sak = packet.sak()
 
         runBlocking {
             val fil = fillager.hentFil(filUrn, eier = ident)
@@ -55,23 +56,23 @@ internal class GenerellJournalføringBehovløser(
                     ),
                     tema = "DAG",
                     kanal = "NAV_NO",
-                    journalfoerendeEnhet = "9999", //todo finne ut ref Mona
+                    journalfoerendeEnhet = "9999", //TODO Vi må finne ut om vi trenger NAY-enhetene
                     tittel = tittel,
                     dokumenter = listOf(
                         JournalpostApiHttp.Dokument(
                             brevkode = null,
-                            dokumentvarianter = listOf(),
-                            tittel = null
+                            dokumentvarianter = listOf(JournalpostApiHttp.Dokumentvariant(
+                                filtype = JournalpostApiHttp.Dokumentvariant.Filtype.PDFA,
+                                variantformat = JournalpostApiHttp.Dokumentvariant.Variant.ARKIV,
+                                fysiskDokument = fil.toString(),
+                            )),
+                            tittel = tittel
 
                         )
                     ),
                     eksternReferanseId = behovId,
                     tilleggsopplysninger = emptyList(),
-                    sak = JournalpostApiHttp.Sak(
-                        fagsakId = packet["sak"]["fagsakId"].asText(),
-                        fagsaksystem = packet["sak"]["fagsaksystem"].asText()
-
-                    )
+                    sak = sak,
                 ),
             )
 //                .let { journalpost -> //                packet["@løsning"] =
@@ -84,6 +85,14 @@ internal class GenerellJournalføringBehovløser(
         }
     }
 
+}
+
+private fun JsonMessage.sak(): JournalpostApiHttp.Sak {
+    val fagsystem = when(this["sak"]["kontekst"].asText()) {
+        "Arena" -> "AO01"
+        else -> "DAGPENGER"
+    }
+    return JournalpostApiHttp.Sak(fagsakId = this["sak"]["id"].asText(), fagsakSystem = fagsystem)
 }
 
 private fun JsonMessage.tittel(): String? {

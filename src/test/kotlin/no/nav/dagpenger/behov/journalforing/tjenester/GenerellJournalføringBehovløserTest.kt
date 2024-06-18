@@ -23,7 +23,10 @@ class GenerellJournalføringBehovløserTest {
         val fillagerMock = mockk<Fillager>().also {
             coEvery { it.hentFil(any(), any()) } returns ByteArray(0)
         }
-        val journalpostApiMock = mockk<JournalpostApi>(relaxed = true)
+        //val journalpostApiMock = mockk<JournalpostApi>(relaxed = true)
+        val journalpostApiMock = mockk<JournalpostApi>().also {
+            coEvery { it.opprett(any()) } returns JournalpostApi.Journalpost("journalpostId")
+        }
         GenerellJournalføringBehovløser(
             rapidsConnection = testRapid,
             fillager = fillagerMock,
@@ -43,12 +46,7 @@ class GenerellJournalføringBehovløserTest {
             fillagerMock.hentFil(FilURN(pdfUrnString), testIdent)
         }
         coVerify(exactly = 1) {
-            journalpostApiMock.opprett(
-                ident = testIdent,
-                dokumenter = any(),
-                eksternReferanseId = any(),
-                tilleggsopplysninger = any(),
-            )
+            journalpostApiMock.opprett(any())
         }
     }
 
