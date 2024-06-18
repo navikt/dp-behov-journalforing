@@ -21,4 +21,14 @@ class FilURN(urn: String) {
     }
 
     val fil = id.namespaceSpecificString().toString()
+    override fun equals(other: Any?): Boolean {
+        if (other !is FilURN) {
+            return false
+        }
+        return this.fil == other.fil
+    }
+
+    override fun hashCode(): Int {
+        return this.fil.hashCode()
+    }
 }
