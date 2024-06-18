@@ -95,7 +95,9 @@ internal class JournalpostApiHttp(
             header(HttpHeaders.XCorrelationId, payload.eksternReferanseId)
             contentType(ContentType.Application.Json)
             setBody(payload)
-        }.body()
+        }.body<Journalpost>().also {
+            logg.info { "Opprettet journalpost med id ${it.id} for behovId ${payload.eksternReferanseId}" }
+        }
     }
 
 
@@ -131,7 +133,7 @@ internal class JournalpostApiHttp(
                     },
                     eksternReferanseId = eksternReferanseId,
                     tilleggsopplysninger = tilleggsopplysninger.map { Tilleggsopplysning(it.first, it.second) },
-                    tittel = tittel,
+                    tittel = dokumenter.first().tittel,
                 ),
             )
         }.body<Resultat>().let {
@@ -160,7 +162,8 @@ internal class JournalpostApiHttp(
     }
 
     internal data class Sak(
-        val
+        val fagsakId: String,
+        val fagsakSystem: String,
     )
 
     internal data class Dokument(
