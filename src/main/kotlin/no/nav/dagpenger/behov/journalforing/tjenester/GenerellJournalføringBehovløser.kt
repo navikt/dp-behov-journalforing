@@ -5,6 +5,7 @@ import mu.KotlinLogging
 import no.nav.dagpenger.behov.journalforing.fillager.FilURN
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -36,36 +37,51 @@ internal class GenerellJournalføringBehovløser(
     override fun onPacket(packet: JsonMessage, context: MessageContext) {
         val filUrn: FilURN = packet.filUrn()
         val ident = packet.ident()
-        val tittel = packet.tittel()
+        val tittel = packet.tittel() ?: "Dagpenger vedtak"
         val behovId = packet.behovId()
 
         runBlocking {
             val fil = fillager.hentFil(filUrn, eier = ident)
-        }
-//            journalpostApi.opprett(
-//                ident = ident,
-//                dokumenter = listOf(
-//                    JournalpostApi.Dokument(
-//                        brevkode = null, tittel = tittel, varianter = listOf(
-//                            JournalpostApi.Variant(
-//                                filtype = JournalpostApi.Variant.Filtype.PDFA,
-//                                format = JournalpostApi.Variant.Format.ARKIV,
-//                                fysiskDokument = fil
-//                            )
-//                        )
-//
-//                    )
-//                ),
-//                eksternReferanseId = behovId,
-//            )
-//                .let { journalpost ->
-//                packet["@løsning"] =
+            journalpostApi.opprett(
+                payload = JournalpostApiHttp.JournalpostPayload(
+                    journalposttype = "UTGAAENDE",
+                    avsenderMottaker = JournalpostApiHttp.JournalpostPayload.Bruker(
+                        id = ident,
+                        idType = "FNR"
+                    ),
+                    bruker = JournalpostApiHttp.JournalpostPayload.Bruker(
+                        id = ident,
+                        idType = "FNR"
+                    ),
+                    tema = "DAG",
+                    kanal = "NAV_NO",
+                    journalfoerendeEnhet = "9999", //todo finne ut ref Mona
+                    tittel = tittel,
+                    dokumenter = listOf(
+                        JournalpostApiHttp.Dokument(
+                            brevkode = null,
+                            dokumentvarianter = listOf(),
+                            tittel = null
+
+                        )
+                    ),
+                    eksternReferanseId = behovId,
+                    tilleggsopplysninger = emptyList(),
+                    sak = JournalpostApiHttp.Sak(
+                        fagsakId = packet["sak"]["fagsakId"].asText(),
+                        fagsaksystem = packet["sak"]["fagsaksystem"].asText()
+
+                    )
+                ),
+            )
+//                .let { journalpost -> //                packet["@løsning"] =
 //                    mapOf(
 //                        NY_JOURNAL_POST to journalpost.id,
 //                    )
 //                val message = packet.toJson()
 //                context.publish(message)
 //                sikkerlogg.info { "Sendt ut løsning $message"
+        }
     }
 
 }
