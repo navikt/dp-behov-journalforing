@@ -1,5 +1,6 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import no.nav.dagpenger.behov.journalforing.fillager.FilURN
@@ -19,7 +20,9 @@ class GenerellJournalføringBehovløserTest {
 
     @Test
     fun `Skal løse behov om journalføring`() {
-        val fillagerMock = mockk<Fillager>(relaxed = true)
+        val fillagerMock = mockk<Fillager>().also {
+            coEvery { it.hentFil(any(), any()) } returns ByteArray(0)
+        }
         val journalpostApiMock = mockk<JournalpostApi>(relaxed = true)
         GenerellJournalføringBehovløser(
             rapidsConnection = testRapid,
@@ -37,14 +40,15 @@ class GenerellJournalføringBehovløserTest {
             )
         )
         coVerify(exactly = 1) {
-            fillagerMock.hentFil(FilURN(pdfUrnString),testIdent)
+            fillagerMock.hentFil(FilURN(pdfUrnString), testIdent)
         }
         coVerify(exactly = 1) {
-            journalpostApiMock.opprett(ident = testIdent,
+            journalpostApiMock.opprett(
+                ident = testIdent,
                 dokumenter = any(),
                 eksternReferanseId = any(),
                 tilleggsopplysninger = any(),
-                )
+            )
         }
     }
 

@@ -63,4 +63,8 @@ internal interface JournalpostApi {
             return result
         }
     }
+
+    suspend fun opprett(
+        payload: JournalpostApiHttp.JournalpostPayload
+    ): Journalpost
 }
