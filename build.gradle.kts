@@ -38,6 +38,7 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation(libs.mockk)
     testImplementation(libs.ktor.client.mock)
+    testImplementation(libs.bundles.kotest.assertions)
     testImplementation("org.junit.jupiter:junit-jupiter-params:${libs.versions.junit.get()}")
 }
 

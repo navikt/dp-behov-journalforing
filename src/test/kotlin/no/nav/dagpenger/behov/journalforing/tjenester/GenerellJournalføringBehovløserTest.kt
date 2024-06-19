@@ -1,5 +1,7 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
+import io.kotest.assertions.json.shouldEqualSpecifiedJsonIgnoringOrder
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -16,21 +18,22 @@ class GenerellJournalføringBehovløserTest {
     private val sakId = "sak1"
     private val sakKontekst = "sakKontekst"
     private val behovId = "behovId"
-
+    private val journalpostId = "journalpostId"
 
     @Test
     fun `Skal løse behov om journalføring`() {
-        val fillagerMock = mockk<Fillager>().also {
-            coEvery { it.hentFil(any(), any()) } returns ByteArray(0)
-        }
-        //val journalpostApiMock = mockk<JournalpostApi>(relaxed = true)
-        val journalpostApiMock = mockk<JournalpostApi>().also {
-            coEvery { it.opprett(any()) } returns JournalpostApi.Journalpost("journalpostId")
-        }
+        val fillagerMock =
+            mockk<Fillager>().also {
+                coEvery { it.hentFil(any(), any()) } returns ByteArray(0)
+            }
+        val journalpostApiMock =
+            mockk<JournalpostApi>().also {
+                coEvery { it.opprett(any()) } returns JournalpostApi.Journalpost(journalpostId)
+            }
         GenerellJournalføringBehovløser(
             rapidsConnection = testRapid,
             fillager = fillagerMock,
-            journalpostApi = journalpostApiMock
+            journalpostApi = journalpostApiMock,
         )
 
         testRapid.sendTestMessage(
@@ -40,7 +43,7 @@ class GenerellJournalføringBehovløserTest {
                 sakId = sakId,
                 sakKontekst = sakKontekst,
                 behovId = behovId,
-            )
+            ),
         )
         coVerify(exactly = 1) {
             fillagerMock.hentFil(FilURN(pdfUrnString), testIdent)
@@ -48,6 +51,20 @@ class GenerellJournalføringBehovløserTest {
         coVerify(exactly = 1) {
             journalpostApiMock.opprett(any())
         }
+
+        testRapid.inspektør.size shouldBe 1
+        testRapid.inspektør.message(0).toString() shouldEqualSpecifiedJsonIgnoringOrder
+            """
+            {
+              "@løsning":
+                 {
+                   "JournalføringBehov":
+                   {
+                     "journalpostId": "journalpostId"
+                   }
+                }
+            }     
+            """.trimIndent()
     }
 
     private fun testMelding(
@@ -56,8 +73,7 @@ class GenerellJournalføringBehovløserTest {
         sakId: String,
         sakKontekst: String,
         behovId: String,
-    ) =
-        //language=JSON
+    ) = //language=JSON
         """
         {
           "@event_name": "behov",
@@ -71,5 +87,4 @@ class GenerellJournalføringBehovløserTest {
             }
         }
         """.trimIndent()
-
 }
