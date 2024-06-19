@@ -10,6 +10,8 @@ internal interface JournalpostApi {
         tilleggsopplysninger: List<Pair<String, String>> = emptyList(),
     ): Journalpost
 
+    suspend fun opprett(payload: JournalpostApiHttp.JournalpostPayload): JournalpostApiHttp.Resultat
+
     data class Journalpost(
         val id: String,
     )
@@ -63,6 +65,4 @@ internal interface JournalpostApi {
             return result
         }
     }
-
-    suspend fun opprett(payload: JournalpostApiHttp.JournalpostPayload): Journalpost
 }
