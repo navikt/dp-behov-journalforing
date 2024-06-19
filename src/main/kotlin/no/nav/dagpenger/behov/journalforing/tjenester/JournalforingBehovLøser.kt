@@ -123,10 +123,11 @@ internal class JournalforingBehovLøser(
         tittel = DokumentTittelOppslag.hentTittel(brevkode),
         varianter =
             this["varianter"].map { variant ->
+                val fysiskDokument: ByteArray = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
                 Variant(
                     filtype = Filtype.valueOf(variant["type"].asText()),
                     format = Format.valueOf(variant["variant"].asText()),
-                    fysiskDokument = fillager.hentFil(FilURN(variant["urn"].asText()), ident),
+                    fysiskDokument = fysiskDokument,
                 )
             },
     )

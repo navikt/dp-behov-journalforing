@@ -86,9 +86,7 @@ internal class JournalpostApiHttp(
             }
         }
 
-    override suspend fun opprett(
-        payload: JournalpostPayload
-    ): Journalpost {
+    override suspend fun opprett(payload: JournalpostPayload): Journalpost {
         return client.post {
             url { encodedPath = "$basePath/journalpost" }
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
@@ -99,7 +97,6 @@ internal class JournalpostApiHttp(
             logg.info { "Opprettet journalpost med id ${it.id} for behovId ${payload.eksternReferanseId}" }
         }
     }
-
 
     override suspend fun opprett(
         ident: String,
@@ -117,23 +114,22 @@ internal class JournalpostApiHttp(
                     avsenderMottaker = Bruker(ident),
                     bruker = Bruker(ident),
                     dokumenter =
-                    dokumenter.map { dokument ->
-                        Dokument(
-                            brevkode = dokument.brevkode,
-                            dokumentvarianter =
-                            dokument.varianter.map { variant ->
-                                Dokumentvariant(
-                                    Filtype.valueOf(variant.filtype.toString()),
-                                    Variant.valueOf(variant.format.toString()),
-                                    Base64.getEncoder().encodeToString(variant.fysiskDokument),
-                                )
-                            },
-                            tittel = dokument.tittel,
-                        )
-                    },
+                        dokumenter.map { dokument ->
+                            Dokument(
+                                brevkode = dokument.brevkode,
+                                dokumentvarianter =
+                                    dokument.varianter.map { variant ->
+                                        Dokumentvariant(
+                                            Filtype.valueOf(variant.filtype.toString()),
+                                            Variant.valueOf(variant.format.toString()),
+                                            Base64.getEncoder().encodeToString(variant.fysiskDokument),
+                                        )
+                                    },
+                                tittel = dokument.tittel,
+                            )
+                        },
                     eksternReferanseId = eksternReferanseId,
                     tilleggsopplysninger = tilleggsopplysninger.map { Tilleggsopplysning(it.first, it.second) },
-                    tittel = dokumenter.first().tittel,
                 ),
             )
         }.body<Resultat>().let {
@@ -162,12 +158,13 @@ internal class JournalpostApiHttp(
     }
 
     internal data class Sak(
+        val sakstype: String = "FAGSAK",
         val fagsakId: String,
         val fagsakSystem: String,
     )
 
     internal data class Dokument(
-        val brevkode: String?,
+        val brevkode: String? = null,
         val dokumentvarianter: List<Dokumentvariant>,
         val tittel: String? = null,
     )
