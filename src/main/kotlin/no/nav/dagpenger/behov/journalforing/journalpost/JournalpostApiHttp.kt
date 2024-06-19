@@ -86,15 +86,15 @@ internal class JournalpostApiHttp(
             }
         }
 
-    override suspend fun opprett(payload: JournalpostPayload): Journalpost {
+    override suspend fun opprett(payload: JournalpostPayload): Resultat {
         return client.post {
             url { encodedPath = "$basePath/journalpost" }
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
             header(HttpHeaders.XCorrelationId, payload.eksternReferanseId)
             contentType(ContentType.Application.Json)
             setBody(payload)
-        }.body<Journalpost>().also {
-            logg.info { "Opprettet journalpost med id ${it.id} for behovId ${payload.eksternReferanseId}" }
+        }.body<Resultat>().also {
+            logg.info { "Opprettet journalpost med id ${it.journalpostId} for behovId ${payload.eksternReferanseId}" }
         }
     }
 
@@ -195,8 +195,9 @@ internal class JournalpostApiHttp(
         }
     }
 
-    private data class Resultat(
+    internal data class Resultat(
         val journalpostId: String,
+        val journalpostferdigstilt: Boolean,
         val dokumenter: List<DokumentInfo>,
     ) {
         data class DokumentInfo(val dokumentInfoId: String)

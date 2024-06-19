@@ -1,6 +1,7 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
 import io.kotest.assertions.json.shouldEqualSpecifiedJsonIgnoringOrder
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -8,6 +9,7 @@ import io.mockk.mockk
 import no.nav.dagpenger.behov.journalforing.fillager.FilURN
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Test
 
@@ -28,7 +30,12 @@ class GenerellJournalføringBehovløserTest {
             }
         val journalpostApiMock =
             mockk<JournalpostApi>().also {
-                coEvery { it.opprett(any()) } returns JournalpostApi.Journalpost(journalpostId)
+                coEvery { it.opprett(any()) } returns
+                    JournalpostApiHttp.Resultat(
+                        journalpostId = journalpostId,
+                        journalpostferdigstilt = true,
+                        dokumenter = listOf(),
+                    )
             }
         GenerellJournalføringBehovløser(
             rapidsConnection = testRapid,
@@ -65,6 +72,40 @@ class GenerellJournalføringBehovløserTest {
                 }
             }     
             """.trimIndent()
+    }
+
+    @Test
+    fun `Kaster exception hvis vi ikke får ferdigstillt journalføring`() {
+        val fillagerMock =
+            mockk<Fillager>().also {
+                coEvery { it.hentFil(any(), any()) } returns ByteArray(0)
+            }
+        val journalpostApiMock =
+            mockk<JournalpostApi>().also {
+                coEvery { it.opprett(any()) } returns
+                    JournalpostApiHttp.Resultat(
+                        journalpostId = journalpostId,
+                        journalpostferdigstilt = false,
+                        dokumenter = listOf(),
+                    )
+            }
+        shouldThrow<JournalpostIkkeFerdigstiltException> {
+            GenerellJournalføringBehovløser(
+                rapidsConnection = testRapid,
+                fillager = fillagerMock,
+                journalpostApi = journalpostApiMock,
+            )
+
+            testRapid.sendTestMessage(
+                testMelding(
+                    ident = testIdent,
+                    pdfUrnString = pdfUrnString,
+                    sakId = sakId,
+                    sakKontekst = sakKontekst,
+                    behovId = behovId,
+                ),
+            )
+        }
     }
 
     private fun testMelding(

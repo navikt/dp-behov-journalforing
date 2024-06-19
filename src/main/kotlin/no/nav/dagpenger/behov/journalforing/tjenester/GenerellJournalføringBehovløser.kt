@@ -47,62 +47,78 @@ internal class GenerellJournalføringBehovløser(
 
         runBlocking {
             val fil = fillager.hentFil(filUrn, eier = ident)
-            journalpostApi.opprett(
-                payload =
-                    JournalpostApiHttp.JournalpostPayload(
-                        journalposttype = "UTGAAENDE",
-                        avsenderMottaker =
-                            JournalpostApiHttp.JournalpostPayload.Bruker(
-                                id = ident,
-                                idType = "FNR",
-                            ),
-                        bruker =
-                            JournalpostApiHttp.JournalpostPayload.Bruker(
-                                id = ident,
-                                idType = "FNR",
-                            ),
-                        tema = "DAG",
-                        kanal = "NAV_NO",
-                        // TODO Vi må finne ut om vi trenger NAY-enhetene
-                        journalfoerendeEnhet = "9999",
-                        tittel = tittel,
-                        eksternReferanseId = behovId,
-                        tilleggsopplysninger = emptyList(),
-                        sak = sak,
-                        dokumenter =
-                            listOf(
-                                JournalpostApiHttp.Dokument(
-                                    tittel = tittel,
-                                    dokumentvarianter =
-                                        listOf(
-                                            JournalpostApiHttp.Dokumentvariant(
-                                                filtype = JournalpostApiHttp.Dokumentvariant.Filtype.PDFA,
-                                                variantformat = JournalpostApiHttp.Dokumentvariant.Variant.ARKIV,
-                                                fysiskDokument = Base64.getEncoder().encodeToString(fil),
-                                            ),
-                                        ),
-                                ),
-                            ),
-                    ),
-            )
-                .let { journalpost -> //
-                    packet["@løsning"] =
-                        mapOf(
-                            BEHOV_NAVN to
-                                mapOf(
-                                    "journalpostId" to journalpost.id,
-                                ),
-                        )
 
-                    val message = packet.toJson()
-                    context.publish(message)
-                    sikkerlogg.info {
-                        "Sendt ut løsning $message"
-                    }
+            runCatching {
+            }
+            val resultat =
+                journalpostApi.opprett(
+                    payload =
+                        JournalpostApiHttp.JournalpostPayload(
+                            journalposttype = "UTGAAENDE",
+                            avsenderMottaker =
+                                JournalpostApiHttp.JournalpostPayload.Bruker(
+                                    id = ident,
+                                    idType = "FNR",
+                                ),
+                            bruker =
+                                JournalpostApiHttp.JournalpostPayload.Bruker(
+                                    id = ident,
+                                    idType = "FNR",
+                                ),
+                            tema = "DAG",
+                            kanal = "NAV_NO",
+                            // TODO Vi må finne ut om vi trenger NAY-enhetene
+                            journalfoerendeEnhet = "9999",
+                            tittel = tittel,
+                            eksternReferanseId = behovId,
+                            tilleggsopplysninger = emptyList(),
+                            sak = sak,
+                            dokumenter =
+                                listOf(
+                                    JournalpostApiHttp.Dokument(
+                                        tittel = tittel,
+                                        dokumentvarianter =
+                                            listOf(
+                                                JournalpostApiHttp.Dokumentvariant(
+                                                    filtype = JournalpostApiHttp.Dokumentvariant.Filtype.PDFA,
+                                                    variantformat = JournalpostApiHttp.Dokumentvariant.Variant.ARKIV,
+                                                    fysiskDokument = Base64.getEncoder().encodeToString(fil),
+                                                ),
+                                            ),
+                                    ),
+                                ),
+                        ),
+                )
+
+            if (!resultat.journalpostferdigstilt) {
+                sikkerlogg.error {
+                    "Journalposten ble ikke ferdigstilt. Resultat fra Joark: $resultat for pakke $packet"
                 }
+                throw JournalpostIkkeFerdigstiltException()
+            } else {
+                resultat
+                    .let { resultat -> //
+                        packet["@løsning"] =
+                            mapOf(
+                                BEHOV_NAVN to
+                                    mapOf(
+                                        "journalpostId" to resultat.journalpostId,
+                                    ),
+                            )
+
+                        val message = packet.toJson()
+                        context.publish(message)
+                        sikkerlogg.info {
+                            "Sendt ut løsning $message"
+                        }
+                    }
+            }
         }
     }
 }
+
+internal class JournalpostIkkeFerdigstiltException() :
+    RuntimeException()
 
 private fun JsonMessage.sak(): JournalpostApiHttp.Sak {
     val fagsystem =
