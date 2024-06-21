@@ -13,13 +13,15 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import java.util.Base64
 
+private val logger = KotlinLogging.logger {}
+private val sikkerlogg = KotlinLogging.logger("tjenestekall")
+
 internal class GenerellJournalføringBehovløser(
     rapidsConnection: RapidsConnection,
     private val fillager: Fillager,
     private val journalpostApi: JournalpostApi,
 ) : River.PacketListener {
     companion object {
-        private val sikkerlogg = KotlinLogging.logger("tjenestekall")
         const val BEHOV_NAVN = "JournalføringBehov"
         val rapidFilter: River.() -> Unit = {
             validate { it.demandValue("@event_name", "behov") }
@@ -49,22 +51,21 @@ internal class GenerellJournalføringBehovløser(
             val fil = fillager.hentFil(filUrn, eier = ident)
 
             runCatching {
-            }
-            val resultat =
-                journalpostApi.opprett(
-                    payload =
+                val resultat =
+                    journalpostApi.opprett(
+                        payload =
                         JournalpostApiHttp.JournalpostPayload(
                             journalposttype = "UTGAAENDE",
                             avsenderMottaker =
-                                JournalpostApiHttp.JournalpostPayload.Bruker(
-                                    id = ident,
-                                    idType = "FNR",
-                                ),
+                            JournalpostApiHttp.JournalpostPayload.Bruker(
+                                id = ident,
+                                idType = "FNR",
+                            ),
                             bruker =
-                                JournalpostApiHttp.JournalpostPayload.Bruker(
-                                    id = ident,
-                                    idType = "FNR",
-                                ),
+                            JournalpostApiHttp.JournalpostPayload.Bruker(
+                                id = ident,
+                                idType = "FNR",
+                            ),
                             tema = "DAG",
                             kanal = "NAV_NO",
                             // TODO Vi må finne ut om vi trenger NAY-enhetene
@@ -74,78 +75,86 @@ internal class GenerellJournalføringBehovløser(
                             tilleggsopplysninger = emptyList(),
                             sak = sak,
                             dokumenter =
-                                listOf(
-                                    JournalpostApiHttp.Dokument(
-                                        tittel = tittel,
-                                        dokumentvarianter =
-                                            listOf(
-                                                JournalpostApiHttp.Dokumentvariant(
-                                                    filtype = JournalpostApiHttp.Dokumentvariant.Filtype.PDFA,
-                                                    variantformat = JournalpostApiHttp.Dokumentvariant.Variant.ARKIV,
-                                                    fysiskDokument = Base64.getEncoder().encodeToString(fil),
-                                                ),
-                                            ),
+                            listOf(
+                                JournalpostApiHttp.Dokument(
+                                    tittel = tittel,
+                                    dokumentvarianter =
+                                    listOf(
+                                        JournalpostApiHttp.Dokumentvariant(
+                                            filtype = JournalpostApiHttp.Dokumentvariant.Filtype.PDFA,
+                                            variantformat = JournalpostApiHttp.Dokumentvariant.Variant.ARKIV,
+                                            fysiskDokument = Base64.getEncoder().encodeToString(fil),
+                                        ),
                                     ),
                                 ),
+                            ),
                         ),
-                )
+                    )
 
-            if (!resultat.journalpostferdigstilt) {
-                sikkerlogg.error {
-                    "Journalposten ble ikke ferdigstilt. Resultat fra Joark: $resultat for pakke $packet"
-                }
-                throw JournalpostIkkeFerdigstiltException()
-            } else {
-                resultat
-                    .let { resultat -> //
-                        packet["@løsning"] =
-                            mapOf(
-                                BEHOV_NAVN to
-                                    mapOf(
-                                        "journalpostId" to resultat.journalpostId,
-                                    ),
-                            )
-
-                        val message = packet.toJson()
-                        context.publish(message)
-                        sikkerlogg.info {
-                            "Sendt ut løsning $message"
-                        }
+                if (!resultat.journalpostferdigstilt) {
+                    sikkerlogg.error {
+                        "Journalposten ble ikke ferdigstilt. Resultat fra Joark: $resultat for pakke $packet"
                     }
+                    throw JournalpostIkkeFerdigstiltException()
+                } else {
+                    resultat
+                        .let { resultat -> //
+                            packet["@løsning"] =
+                                mapOf(
+                                    BEHOV_NAVN to
+                                            mapOf(
+                                                "journalpostId" to resultat.journalpostId,
+                                            ),
+                                )
+
+                            val message = packet.toJson()
+                            context.publish(message)
+                            sikkerlogg.info {
+                                "Sendt ut løsning $message"
+                            }
+                        }
+                }
+            }.onFailure {
+                logger.error {
+                    "Feil ved journalføring av dokument: ${it.message}"
+                }
+
+                sikkerlogg.error {
+                    "Feil ved journalføring av dokument: ${it.message} for pakke: $packet"
+                }
             }
         }
     }
-}
 
-internal class JournalpostIkkeFerdigstiltException() :
-    RuntimeException()
+    internal class JournalpostIkkeFerdigstiltException() :
+        RuntimeException()
 
-private fun JsonMessage.sak(): JournalpostApiHttp.Sak {
-    val fagsystem =
-        when (this["sak"]["kontekst"].asText()) {
-            "Arena" -> "AO01"
-            else -> "DAGPENGER"
-        }
+    private fun JsonMessage.sak(): JournalpostApiHttp.Sak {
+        val fagsystem =
+            when (this["sak"]["kontekst"].asText()) {
+                "Arena" -> "AO01"
+                else -> "DAGPENGER"
+            }
 
-    return JournalpostApiHttp.Sak(fagsakId = this["sak"]["id"].asText(), fagsakSystem = fagsystem)
-}
-
-private fun JsonMessage.tittel(): String? {
-    val tittelNode = this.get("tittel")
-    return when (tittelNode.isMissingOrNull()) {
-        true -> null
-        false -> tittelNode.asText()
+        return JournalpostApiHttp.Sak(fagsakId = this["sak"]["id"].asText(), fagsakSystem = fagsystem)
     }
-}
 
-private fun JsonMessage.ident(): String {
-    return this["ident"].asText()
-}
+    private fun JsonMessage.tittel(): String? {
+        val tittelNode = this.get("tittel")
+        return when (tittelNode.isMissingOrNull()) {
+            true -> null
+            false -> tittelNode.asText()
+        }
+    }
 
-private fun JsonMessage.filUrn(): FilURN {
-    return FilURN(urn = this["pdfUrn"].asText())
-}
+    private fun JsonMessage.ident(): String {
+        return this["ident"].asText()
+    }
 
-private fun JsonMessage.behovId(): String {
-    return this["@behovId"].asText()
-}
+    private fun JsonMessage.filUrn(): FilURN {
+        return FilURN(urn = this["pdfUrn"].asText())
+    }
+
+    private fun JsonMessage.behovId(): String {
+        return this["@behovId"].asText()
+    }
