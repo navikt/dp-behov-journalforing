@@ -31,7 +31,7 @@ class GenerellJournalføringBehovløserTest {
             }
         val journalpostApiMock =
             mockk<JournalpostApi>().also {
-                coEvery { it.opprett(any()) } returns
+                coEvery { it.opprett(true, any()) } returns
                     JournalpostApiHttp.Resultat(
                         journalpostId = journalpostId,
                         journalpostferdigstilt = true,
@@ -57,7 +57,7 @@ class GenerellJournalføringBehovløserTest {
             fillagerMock.hentFil(FilURN(pdfUrnString), testIdent)
         }
         coVerify(exactly = 1) {
-            journalpostApiMock.opprett(any())
+            journalpostApiMock.opprett(true, any())
         }
 
         testRapid.inspektør.size shouldBe 1
@@ -83,7 +83,7 @@ class GenerellJournalføringBehovløserTest {
             }
         val journalpostApiMock =
             mockk<JournalpostApi>().also {
-                coEvery { it.opprett(any()) } returns
+                coEvery { it.opprett(true, any()) } returns
                     JournalpostApiHttp.Resultat(
                         journalpostId = journalpostId,
                         journalpostferdigstilt = false,

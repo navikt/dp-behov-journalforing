@@ -86,9 +86,12 @@ internal class JournalpostApiHttp(
             }
         }
 
-    override suspend fun opprett(payload: JournalpostPayload): Resultat {
+    override suspend fun opprett(
+        forsøkFerdigstill: Boolean,
+        payload: JournalpostPayload,
+    ): Resultat {
         return client.post {
-            url { encodedPath = "$basePath/journalpost" }
+            url { encodedPath = "$basePath/journalpost?forsoekFerdigstill=$forsøkFerdigstill" }
             header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
             header(HttpHeaders.XCorrelationId, payload.eksternReferanseId)
             contentType(ContentType.Application.Json)

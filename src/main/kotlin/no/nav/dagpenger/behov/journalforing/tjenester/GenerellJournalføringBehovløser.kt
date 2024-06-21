@@ -52,6 +52,7 @@ internal class GenerellJournalføringBehovløser(
             runCatching {
                 val resultat =
                     journalpostApi.opprett(
+                        forsøkFerdigstill = true,
                         payload =
                             JournalpostApiHttp.JournalpostPayload(
                                 journalposttype = "UTGAAENDE",
@@ -116,7 +117,7 @@ internal class GenerellJournalføringBehovløser(
                 }
 
                 sikkerlogg.error(it) {
-                    "Feil ved journalføring av dokument: ${it.message} for pakke: $packet"
+                    "Feil ved journalføring av dokument: ${it.message} for pakke: ${packet.toJson()}"
                 }
                 throw it
             }
