@@ -202,7 +202,7 @@ internal class JournalpostApiHttp(
         val journalpostId: String,
         val journalpostferdigstilt: Boolean,
         val dokumenter: List<DokumentInfo>,
-        val melding: String,
+        val melding: String?,
     ) {
         data class DokumentInfo(val dokumentInfoId: String)
     }
