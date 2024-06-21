@@ -111,11 +111,11 @@ internal class GenerellJournalføringBehovløser(
                     }
                 }
             }.onFailure {
-                logger.error {
+                logger.error(it) {
                     "Feil ved journalføring av dokument: ${it.message}"
                 }
 
-                sikkerlogg.error {
+                sikkerlogg.error(it) {
                     "Feil ved journalføring av dokument: ${it.message} for pakke: $packet"
                 }
                 throw it
