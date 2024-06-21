@@ -36,6 +36,7 @@ class GenerellJournalføringBehovløserTest {
                         journalpostId = journalpostId,
                         journalpostferdigstilt = true,
                         dokumenter = listOf(),
+                        melding = "Journalpost ferdigstilt",
                     )
             }
         GenerellJournalføringBehovløser(
@@ -88,6 +89,7 @@ class GenerellJournalføringBehovløserTest {
                         journalpostId = journalpostId,
                         journalpostferdigstilt = false,
                         dokumenter = listOf(),
+                        melding = "Journalpost ikke ferdigstilt",
                     )
             }
         shouldThrow<JournalpostIkkeFerdigstiltException> {

@@ -124,7 +124,8 @@ private val dummyResponse =
         }
       ],
       "journalpostId": "467010363",
-      "journalpostferdigstilt": true
+      "journalpostferdigstilt": true,
+      "melding": "En melding"
     }
     """.trimIndent()
 
