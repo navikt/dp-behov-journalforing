@@ -30,7 +30,6 @@ internal class GenerellJournalføringBehovløser(
             validate { it.interestedIn("skjemaKode", "tittel") }
             validate { it.rejectKey("@løsning") }
         }
-        internal const val NY_JOURNAL_POST = "NyJournalpost"
     }
 
     init {
@@ -54,41 +53,41 @@ internal class GenerellJournalføringBehovløser(
                 val resultat =
                     journalpostApi.opprett(
                         payload =
-                        JournalpostApiHttp.JournalpostPayload(
-                            journalposttype = "UTGAAENDE",
-                            avsenderMottaker =
-                            JournalpostApiHttp.JournalpostPayload.Bruker(
-                                id = ident,
-                                idType = "FNR",
-                            ),
-                            bruker =
-                            JournalpostApiHttp.JournalpostPayload.Bruker(
-                                id = ident,
-                                idType = "FNR",
-                            ),
-                            tema = "DAG",
-                            kanal = "NAV_NO",
-                            // TODO Vi må finne ut om vi trenger NAY-enhetene
-                            journalfoerendeEnhet = "9999",
-                            tittel = tittel,
-                            eksternReferanseId = behovId,
-                            tilleggsopplysninger = emptyList(),
-                            sak = sak,
-                            dokumenter =
-                            listOf(
-                                JournalpostApiHttp.Dokument(
-                                    tittel = tittel,
-                                    dokumentvarianter =
+                            JournalpostApiHttp.JournalpostPayload(
+                                journalposttype = "UTGAAENDE",
+                                avsenderMottaker =
+                                    JournalpostApiHttp.JournalpostPayload.Bruker(
+                                        id = ident,
+                                        idType = "FNR",
+                                    ),
+                                bruker =
+                                    JournalpostApiHttp.JournalpostPayload.Bruker(
+                                        id = ident,
+                                        idType = "FNR",
+                                    ),
+                                tema = "DAG",
+                                kanal = "NAV_NO",
+                                // TODO Vi må finne ut om vi trenger NAY-enhetene
+                                journalfoerendeEnhet = "9999",
+                                tittel = tittel,
+                                eksternReferanseId = behovId,
+                                tilleggsopplysninger = emptyList(),
+                                sak = sak,
+                                dokumenter =
                                     listOf(
-                                        JournalpostApiHttp.Dokumentvariant(
-                                            filtype = JournalpostApiHttp.Dokumentvariant.Filtype.PDFA,
-                                            variantformat = JournalpostApiHttp.Dokumentvariant.Variant.ARKIV,
-                                            fysiskDokument = Base64.getEncoder().encodeToString(fil),
+                                        JournalpostApiHttp.Dokument(
+                                            tittel = tittel,
+                                            dokumentvarianter =
+                                                listOf(
+                                                    JournalpostApiHttp.Dokumentvariant(
+                                                        filtype = JournalpostApiHttp.Dokumentvariant.Filtype.PDFA,
+                                                        variantformat = JournalpostApiHttp.Dokumentvariant.Variant.ARKIV,
+                                                        fysiskDokument = Base64.getEncoder().encodeToString(fil),
+                                                    ),
+                                                ),
                                         ),
                                     ),
-                                ),
                             ),
-                        ),
                     )
 
                 if (!resultat.journalpostferdigstilt) {
@@ -97,22 +96,19 @@ internal class GenerellJournalføringBehovløser(
                     }
                     throw JournalpostIkkeFerdigstiltException()
                 } else {
-                    resultat
-                        .let { resultat -> //
-                            packet["@løsning"] =
+                    packet["@løsning"] =
+                        mapOf(
+                            BEHOV_NAVN to
                                 mapOf(
-                                    BEHOV_NAVN to
-                                            mapOf(
-                                                "journalpostId" to resultat.journalpostId,
-                                            ),
-                                )
+                                    "journalpostId" to resultat.journalpostId,
+                                ),
+                        )
 
-                            val message = packet.toJson()
-                            context.publish(message)
-                            sikkerlogg.info {
-                                "Sendt ut løsning $message"
-                            }
-                        }
+                    val message = packet.toJson()
+                    context.publish(message)
+                    sikkerlogg.info {
+                        "Sendt ut løsning $message"
+                    }
                 }
             }.onFailure {
                 logger.error {
@@ -122,6 +118,7 @@ internal class GenerellJournalføringBehovløser(
                 sikkerlogg.error {
                     "Feil ved journalføring av dokument: ${it.message} for pakke: $packet"
                 }
+                throw it
             }
         }
     }
@@ -158,3 +155,4 @@ internal class GenerellJournalføringBehovløser(
     private fun JsonMessage.behovId(): String {
         return this["@behovId"].asText()
     }
+}
