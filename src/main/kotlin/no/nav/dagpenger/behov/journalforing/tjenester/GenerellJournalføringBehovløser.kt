@@ -45,6 +45,7 @@ internal class GenerellJournalføringBehovløser(
         val tittel = packet.tittel() ?: "Dagpenger vedtak"
         val behovId = packet.behovId()
         val sak = packet.sak()
+        val skjemaKode = packet.skjemaKode() ?: "NAV-DAGPENGER-VEDTAK"
 
         runBlocking {
             val fil = fillager.hentFil(filUrn, eier = ident)
@@ -77,6 +78,7 @@ internal class GenerellJournalføringBehovløser(
                                 dokumenter =
                                     listOf(
                                         JournalpostApiHttp.Dokument(
+                                            brevkode = skjemaKode,
                                             tittel = tittel,
                                             dokumentvarianter =
                                                 listOf(
@@ -139,6 +141,14 @@ internal class GenerellJournalføringBehovløser(
 
     private fun JsonMessage.tittel(): String? {
         val tittelNode = this.get("tittel")
+        return when (tittelNode.isMissingOrNull()) {
+            true -> null
+            false -> tittelNode.asText()
+        }
+    }
+
+    private fun JsonMessage.skjemaKode(): String? {
+        val tittelNode = this.get("skjemaKode")
         return when (tittelNode.isMissingOrNull()) {
             true -> null
             false -> tittelNode.asText()
