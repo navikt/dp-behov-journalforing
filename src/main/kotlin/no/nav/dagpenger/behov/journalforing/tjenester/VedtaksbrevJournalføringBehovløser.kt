@@ -16,7 +16,7 @@ import java.util.Base64
 private val logger = KotlinLogging.logger {}
 private val sikkerlogg = KotlinLogging.logger("tjenestekall")
 
-internal class GenerellJournalføringBehovløser(
+internal class VedtaksbrevJournalføringBehovløser(
     rapidsConnection: RapidsConnection,
     private val fillager: Fillager,
     private val journalpostApi: JournalpostApi,
