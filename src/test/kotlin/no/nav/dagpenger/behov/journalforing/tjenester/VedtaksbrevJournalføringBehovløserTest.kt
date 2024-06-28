@@ -10,11 +10,11 @@ import no.nav.dagpenger.behov.journalforing.fillager.FilURN
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
-import no.nav.dagpenger.behov.journalforing.tjenester.GenerellJournalføringBehovløser.JournalpostIkkeFerdigstiltException
+import no.nav.dagpenger.behov.journalforing.tjenester.VedtaksbrevJournalføringBehovløser.JournalpostIkkeFerdigstiltException
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Test
 
-class GenerellJournalføringBehovløserTest {
+class VedtaksbrevJournalføringBehovløserTest {
     private val testRapid = TestRapid()
     private val testIdent = "01010199999"
     private val pdfUrnString = "urn:disney:mikkemus"
@@ -39,7 +39,7 @@ class GenerellJournalføringBehovløserTest {
                         melding = "Journalpost ferdigstilt",
                     )
             }
-        GenerellJournalføringBehovløser(
+        VedtaksbrevJournalføringBehovløser(
             rapidsConnection = testRapid,
             fillager = fillagerMock,
             journalpostApi = journalpostApiMock,
@@ -93,7 +93,7 @@ class GenerellJournalføringBehovløserTest {
                     )
             }
         shouldThrow<JournalpostIkkeFerdigstiltException> {
-            GenerellJournalføringBehovløser(
+            VedtaksbrevJournalføringBehovløser(
                 rapidsConnection = testRapid,
                 fillager = fillagerMock,
                 journalpostApi = journalpostApiMock,
