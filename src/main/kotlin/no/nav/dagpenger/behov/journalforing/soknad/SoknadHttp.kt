@@ -29,16 +29,17 @@ internal class SoknadHttp(
             expectSuccess = true
         }
 
-    internal suspend fun hentJsonSøknad(søknadId: String): Variant {
-        return client.get("$baseurl/$søknadId/ferdigstilt/fakta") {
-            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-            header(HttpHeaders.XCorrelationId, MDC.get("behovId"))
-        }.body<ByteArray>().let {
-            Variant(
-                filtype = Variant.Filtype.JSON,
-                format = Variant.Format.ORIGINAL,
-                fysiskDokument = it,
-            )
-        }
-    }
+    internal suspend fun hentJsonSøknad(søknadId: String): Variant =
+        client
+            .get("$baseurl/$søknadId/ferdigstilt/fakta") {
+                header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
+                header(HttpHeaders.XCorrelationId, MDC.get("behovId"))
+            }.body<ByteArray>()
+            .let {
+                Variant(
+                    filtype = Variant.Filtype.JSON,
+                    format = Variant.Format.ORIGINAL,
+                    fysiskDokument = it,
+                )
+            }
 }

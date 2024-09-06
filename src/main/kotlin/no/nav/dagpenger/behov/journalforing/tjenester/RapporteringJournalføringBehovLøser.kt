@@ -25,25 +25,26 @@ internal class RapporteringJournalføringBehovLøser(
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
-        private val sikkerlogg = KotlinLogging.logger("tjenestekall")
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall.RapporteringJournalføringBehovLøser")
         internal const val BEHOV = "JournalføreRapportering"
         internal const val BREVKODE = "M6" // Timelister
     }
 
     init {
-        River(rapidsConnection).apply {
-            validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAll("@behov", listOf(BEHOV)) }
-            validate { it.rejectKey("@løsning") }
-            validate { it.requireKey("@behovId", "ident") }
-            validate {
-                it.require(BEHOV) { behov ->
-                    behov.required("periodeId")
-                    behov.required("json")
-                    behov.required("urn")
+        River(rapidsConnection)
+            .apply {
+                validate { it.demandValue("@event_name", "behov") }
+                validate { it.demandAll("@behov", listOf(BEHOV)) }
+                validate { it.rejectKey("@løsning") }
+                validate { it.requireKey("@behovId", "ident") }
+                validate {
+                    it.require(BEHOV) { behov ->
+                        behov.required("periodeId")
+                        behov.required("json")
+                        behov.required("urn")
+                    }
                 }
-            }
-        }.register(this)
+            }.register(this)
     }
 
     override fun onPacket(
@@ -95,8 +96,8 @@ internal class RapporteringJournalføringBehovLøser(
     private fun opprettDokument(
         json: ByteArray,
         pdf: ByteArray,
-    ): Dokument {
-        return Dokument(
+    ): Dokument =
+        Dokument(
             brevkode = BREVKODE,
             tittel = DokumentTittelOppslag.hentTittel(BREVKODE),
             varianter =
@@ -113,5 +114,4 @@ internal class RapporteringJournalføringBehovLøser(
                     ),
                 ),
         )
-    }
 }

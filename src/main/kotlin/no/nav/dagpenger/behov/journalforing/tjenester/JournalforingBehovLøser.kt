@@ -30,17 +30,18 @@ internal class JournalforingBehovLøser(
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
-        private val sikkerlogg = KotlinLogging.logger("tjenestekall")
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall.JournalforingBehovLøser")
         private val behovIdSkipSet = setOf("1609b129-ced2-4547-8a89-8ec538029e66")
         internal const val NY_JOURNAL_POST = "NyJournalpost"
     }
 
     init {
-        River(rapidsConnection).apply {
-            validate { it.demandAll("@behov", listOf(NY_JOURNAL_POST)) }
-            validate { it.rejectKey("@løsning") }
-            validate { it.requireKey("@behovId", "søknad_uuid", "ident", "type", NY_JOURNAL_POST) }
-        }.register(this)
+        River(rapidsConnection)
+            .apply {
+                validate { it.demandAll("@behov", listOf(NY_JOURNAL_POST)) }
+                validate { it.rejectKey("@løsning") }
+                validate { it.requireKey("@behovId", "søknad_uuid", "ident", "type", NY_JOURNAL_POST) }
+            }.register(this)
     }
 
     override fun onPacket(
@@ -79,24 +80,28 @@ internal class JournalforingBehovLøser(
                 sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
                 sikkerlogg.info { "Oppretter journalost basert på ${packet.toJson()}" }
                 try {
-                    journalpostApi.opprett(
-                        ident = ident,
-                        dokumenter = dokumenter,
-                        eksternReferanseId = behovId,
-                    ).let { journalpost ->
-                        packet["@løsning"] =
-                            mapOf(
-                                NY_JOURNAL_POST to journalpost.id,
-                            )
-                        val message = packet.toJson()
-                        context.publish(message)
-                        sikkerlogg.info { "Sendt ut løsning $message" }
-                    }
+                    journalpostApi
+                        .opprett(
+                            ident = ident,
+                            dokumenter = dokumenter,
+                            eksternReferanseId = behovId,
+                        ).let { journalpost ->
+                            packet["@løsning"] =
+                                mapOf(
+                                    NY_JOURNAL_POST to journalpost.id,
+                                )
+                            val message = packet.toJson()
+                            context.publish(message)
+                            sikkerlogg.info { "Sendt ut løsning $message" }
+                        }
                 } catch (e: ClientRequestException) {
-                    if (e.response.status == HttpStatusCode.InternalServerError) {
-                        sikkerlogg.warn(e) { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly." }
+                    when (e.response.status) {
+                        HttpStatusCode.InternalServerError, HttpStatusCode.NotFound ->
+                            sikkerlogg.warn(e) {
+                                "Feilet for '$ident'. Hvis dette er i dev, forsøk å importere identen på nytt i Dolly."
+                            }
+                        else -> sikkerlogg.error(e) { "Opprettelse av  journalpost med $dokumenter feilet" }
                     }
-                    sikkerlogg.error { "Opprettelse av  journalpost med $dokumenter feilet" }
                     throw e
                 }
             }

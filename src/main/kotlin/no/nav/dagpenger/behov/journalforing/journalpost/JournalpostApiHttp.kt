@@ -89,17 +89,18 @@ internal class JournalpostApiHttp(
     override suspend fun opprett(
         forsøkFerdigstill: Boolean,
         payload: JournalpostPayload,
-    ): Resultat {
-        return client.post {
-            url { encodedPath = "$basePath/journalpost?forsoekFerdigstill=$forsøkFerdigstill" }
-            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-            header(HttpHeaders.XCorrelationId, payload.eksternReferanseId)
-            contentType(ContentType.Application.Json)
-            setBody(payload)
-        }.body<Resultat>().also {
-            logg.info { "Opprettet journalpost med id ${it.journalpostId} for behovId ${payload.eksternReferanseId}" }
-        }
-    }
+    ): Resultat =
+        client
+            .post {
+                url { encodedPath = "$basePath/journalpost?forsoekFerdigstill=$forsøkFerdigstill" }
+                header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
+                header(HttpHeaders.XCorrelationId, payload.eksternReferanseId)
+                contentType(ContentType.Application.Json)
+                setBody(payload)
+            }.body<Resultat>()
+            .also {
+                logg.info { "Opprettet journalpost med id ${it.journalpostId} for behovId ${payload.eksternReferanseId}" }
+            }
 
     override suspend fun opprett(
         ident: String,
@@ -107,37 +108,39 @@ internal class JournalpostApiHttp(
         eksternReferanseId: String,
         tilleggsopplysninger: List<Pair<String, String>>,
     ): Journalpost =
-        client.post {
-            url { encodedPath = "$basePath/journalpost" }
-            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-            header(HttpHeaders.XCorrelationId, eksternReferanseId)
-            contentType(ContentType.Application.Json)
-            setBody(
-                JournalpostPayload(
-                    avsenderMottaker = Bruker(ident),
-                    bruker = Bruker(ident),
-                    dokumenter =
-                        dokumenter.map { dokument ->
-                            Dokument(
-                                brevkode = dokument.brevkode,
-                                dokumentvarianter =
-                                    dokument.varianter.map { variant ->
-                                        Dokumentvariant(
-                                            Filtype.valueOf(variant.filtype.toString()),
-                                            Variant.valueOf(variant.format.toString()),
-                                            Base64.getEncoder().encodeToString(variant.fysiskDokument),
-                                        )
-                                    },
-                                tittel = dokument.tittel,
-                            )
-                        },
-                    eksternReferanseId = eksternReferanseId,
-                    tilleggsopplysninger = tilleggsopplysninger.map { Tilleggsopplysning(it.first, it.second) },
-                ),
-            )
-        }.body<Resultat>().let {
-            Journalpost(it.journalpostId)
-        }
+        client
+            .post {
+                url { encodedPath = "$basePath/journalpost" }
+                header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
+                header(HttpHeaders.XCorrelationId, eksternReferanseId)
+                contentType(ContentType.Application.Json)
+                setBody(
+                    JournalpostPayload(
+                        avsenderMottaker = Bruker(ident),
+                        bruker = Bruker(ident),
+                        dokumenter =
+                            dokumenter.map { dokument ->
+                                Dokument(
+                                    brevkode = dokument.brevkode,
+                                    dokumentvarianter =
+                                        dokument.varianter.map { variant ->
+                                            Dokumentvariant(
+                                                Filtype.valueOf(variant.filtype.toString()),
+                                                Variant.valueOf(variant.format.toString()),
+                                                Base64.getEncoder().encodeToString(variant.fysiskDokument),
+                                            )
+                                        },
+                                    tittel = dokument.tittel,
+                                )
+                            },
+                        eksternReferanseId = eksternReferanseId,
+                        tilleggsopplysninger = tilleggsopplysninger.map { Tilleggsopplysning(it.first, it.second) },
+                    ),
+                )
+            }.body<Resultat>()
+            .let {
+                Journalpost(it.journalpostId)
+            }
 
     @JsonAutoDetect(fieldVisibility = Visibility.ANY)
     internal data class JournalpostPayload(
@@ -204,6 +207,8 @@ internal class JournalpostApiHttp(
         val dokumenter: List<DokumentInfo>,
         val melding: String?,
     ) {
-        data class DokumentInfo(val dokumentInfoId: String)
+        data class DokumentInfo(
+            val dokumentInfoId: String,
+        )
     }
 }

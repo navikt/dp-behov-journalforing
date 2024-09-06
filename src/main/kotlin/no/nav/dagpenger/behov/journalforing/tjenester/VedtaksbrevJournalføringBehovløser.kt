@@ -13,9 +13,6 @@ import no.nav.helse.rapids_rivers.River
 import no.nav.helse.rapids_rivers.isMissingOrNull
 import java.util.Base64
 
-private val logger = KotlinLogging.logger {}
-private val sikkerlogg = KotlinLogging.logger("tjenestekall")
-
 internal class VedtaksbrevJournalføringBehovløser(
     rapidsConnection: RapidsConnection,
     private val fillager: Fillager,
@@ -23,6 +20,9 @@ internal class VedtaksbrevJournalføringBehovløser(
 ) : River.PacketListener {
     companion object {
         const val BEHOV_NAVN = "JournalføringBehov"
+
+        private val logger = KotlinLogging.logger {}
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall.VedtaksbrevJournalføringBehovløser")
         val rapidFilter: River.() -> Unit = {
             validate { it.demandValue("@event_name", "behov") }
             validate { it.demandAll("@behov", listOf(BEHOV_NAVN)) }
@@ -126,8 +126,7 @@ internal class VedtaksbrevJournalføringBehovløser(
         }
     }
 
-    internal class JournalpostIkkeFerdigstiltException() :
-        RuntimeException()
+    internal class JournalpostIkkeFerdigstiltException : RuntimeException()
 
     private fun JsonMessage.sak(): JournalpostApiHttp.Sak {
         val fagsystem =
@@ -155,15 +154,9 @@ internal class VedtaksbrevJournalføringBehovløser(
         }
     }
 
-    private fun JsonMessage.ident(): String {
-        return this["ident"].asText()
-    }
+    private fun JsonMessage.ident(): String = this["ident"].asText()
 
-    private fun JsonMessage.filUrn(): FilURN {
-        return FilURN(urn = this["pdfUrn"].asText())
-    }
+    private fun JsonMessage.filUrn(): FilURN = FilURN(urn = this["pdfUrn"].asText())
 
-    private fun JsonMessage.behovId(): String {
-        return this["@behovId"].asText()
-    }
+    private fun JsonMessage.behovId(): String = this["@behovId"].asText()
 }
