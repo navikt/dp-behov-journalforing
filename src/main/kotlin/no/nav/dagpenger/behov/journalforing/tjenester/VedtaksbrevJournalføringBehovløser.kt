@@ -42,7 +42,7 @@ internal class VedtaksbrevJournalføringBehovløser(
     ) {
         val filUrn: FilURN = packet.filUrn()
         val ident = packet.ident()
-        val tittel = packet.tittel() ?: "Dagpenger vedtak"
+        val tittel = packet.tittel() ?: "Vedtak om dagpenger"
         val behovId = packet.behovId()
         val sak = packet.sak()
         val skjemaKode = packet.skjemaKode() ?: "NAV-DAGPENGER-VEDTAK"
