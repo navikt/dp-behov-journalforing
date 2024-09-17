@@ -31,7 +31,7 @@ internal class JournalforingBehovLøser(
     internal companion object {
         private val logg = KotlinLogging.logger {}
         private val sikkerlogg = KotlinLogging.logger("tjenestekall.JournalforingBehovLøser")
-        private val behovIdSkipSet = setOf("1609b129-ced2-4547-8a89-8ec538029e66")
+        private val behovIdSkipSet = setOf("1609b129-ced2-4547-8a89-8ec538029e66", "bd62d2a7-bb96-4f14-954e-6fdf9b74ff75")
         internal const val NY_JOURNAL_POST = "NyJournalpost"
     }
 
