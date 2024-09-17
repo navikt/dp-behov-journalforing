@@ -63,6 +63,7 @@ internal class JournalforingBehovLøser(
                 }",
             )
             if (behovIdSkipSet.contains(behovId)) return
+            if (ident in listOf("08875499077")) return
             runBlocking(MDCContext()) {
                 val hovedDokument =
                     packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
