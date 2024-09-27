@@ -1,13 +1,13 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import mu.KotlinLogging
 import mu.withLoggingContext
-import no.nav.dagpenger.behov.journalforing.fillager.FilURN
-import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
@@ -17,17 +17,16 @@ import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
 import no.nav.helse.rapids_rivers.River
+import java.util.Base64
 
 internal class RapporteringJournalføringBehovLøser(
     rapidsConnection: RapidsConnection,
-    private val fillager: Fillager,
     private val journalpostApi: JournalpostApi,
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
         private val sikkerlogg = KotlinLogging.logger("tjenestekall.RapporteringJournalføringBehovLøser")
         internal const val BEHOV = "JournalføreRapportering"
-        internal const val BREVKODE = "M6" // Timelister
     }
 
     init {
@@ -40,8 +39,10 @@ internal class RapporteringJournalføringBehovLøser(
                 validate {
                     it.require(BEHOV) { behov ->
                         behov.required("periodeId")
+                        behov.required("brevkode")
                         behov.required("json")
-                        behov.required("urn")
+                        behov.required("pdf")
+                        behov.required("tilleggsopplysninger")
                     }
                 }
             }.register(this)
@@ -62,20 +63,29 @@ internal class RapporteringJournalføringBehovLøser(
             try {
                 logg.info("Mottok behov for ny journalpost for periode med id $periodeId")
                 runBlocking(MDCContext()) {
+                    val brevkode = packet[BEHOV]["brevkode"].asText()
                     val json = packet[BEHOV]["json"].asText()
-                    val urn = packet[BEHOV]["urn"].asText()
+                    val pdf = packet[BEHOV]["pdf"].asText()
+                    val tilleggsopplysningerString = packet[BEHOV]["tilleggsopplysninger"].asText()
+
+                    val tilleggsopplysninger = jacksonObjectMapper().readValue(
+                        tilleggsopplysningerString,
+                        object : TypeReference<List<Pair<String, String>>>() {},
+                    )
                     val dokumenter: List<Dokument> =
                         listOf(
-                            opprettDokument(json.encodeToByteArray(), fillager.hentFil(FilURN(urn), ident)),
+                            opprettDokument(brevkode, json.encodeToByteArray(), Base64.getDecoder().decode(pdf)),
                         )
+
                     sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
                     sikkerlogg.info { "Oppretter journalost basert på ${packet.toJson()}" }
+
                     val journalpost =
                         journalpostApi.opprett(
                             ident = ident,
                             dokumenter = dokumenter,
                             eksternReferanseId = behovId,
-                            tilleggsopplysninger = listOf(Pair("periodeId", periodeId)),
+                            tilleggsopplysninger = tilleggsopplysninger,
                         )
                     packet["@løsning"] =
                         mapOf(
@@ -94,12 +104,13 @@ internal class RapporteringJournalføringBehovLøser(
     }
 
     private fun opprettDokument(
+        brevkode: String,
         json: ByteArray,
         pdf: ByteArray,
     ): Dokument =
         Dokument(
-            brevkode = BREVKODE,
-            tittel = DokumentTittelOppslag.hentTittel(BREVKODE),
+            brevkode = brevkode,
+            tittel = DokumentTittelOppslag.hentTittel(brevkode),
             varianter =
                 listOf(
                     Variant(

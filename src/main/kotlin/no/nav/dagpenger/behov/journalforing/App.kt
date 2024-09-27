@@ -30,7 +30,6 @@ internal object App : RapidsConnection.StatusListener {
             )
             RapporteringJournalføringBehovLøser(
                 rapidsConnection = it,
-                fillager = fillager,
                 journalpostApi = journalpostApi,
             )
             VedtaksbrevJournalføringBehovløser(

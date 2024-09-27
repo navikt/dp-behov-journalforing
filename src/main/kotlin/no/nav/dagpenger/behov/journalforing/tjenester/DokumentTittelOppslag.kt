@@ -12,6 +12,8 @@ object DokumentTittelOppslag {
             "N2" to "Kopi av søknad",
             "N5" to "Kopi av undersøkelsesresultat",
             "N6" to "Annet",
+            "NAV 00-10.02" to "Meldekort elektronisk mottatt av NAV",
+            "NAV 00-10.03" to "Korrigert meldekort elektronisk mottatt av NAV",
             "NAV 04-01.03" to "Søknad om dagpenger (ikke permittert)",
             "NAV 04-01.04" to "Søknad om dagpenger ved permittering",
             "NAV 04-02.01" to "Søknad om utstedelse av attest PD U2",
