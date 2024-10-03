@@ -40,13 +40,13 @@ internal class RapporteringJournalføringBehovLøserTest {
             "brevkode": "NAV 00-10.02",
             "json": "{\"key1\": \"value1\"}",
             "pdf": "$base64EncodedPdf",
-            "tilleggsopplysninger": "[
-              { \"first\": \"periodeId\", \"second\": \"$periodeId\" },
-              { \"first\": \"kanSendesFra\", \"second\": \"$kanSendesFra\" },
-              { \"first\": \"userAgent\", \"second\": \"$userAgent\" },
-              { \"first\": \"frontendGithubSha\", \"second\": \"$frontendSha\" },
-              { \"first\": \"backendGithubSha\", \"second\": \"$backendSha\" }
-            ]"
+            "tilleggsopplysninger": [
+              { "first": "periodeId", "second": "$periodeId" },
+              { "first": "kanSendesFra", "second": "$kanSendesFra" },
+              { "first": "userAgent", "second": "$userAgent" },
+              { "first": "frontendGithubSha", "second": "$frontendSha" },
+              { "first": "backendGithubSha", "second": "$backendSha" }
+            ]
           },
           "@id": "30ef9625-196a-445b-9b4e-67e0e6a5118d",
           "@opprettet": "2023-10-23T18:53:08.056035121",

@@ -66,14 +66,13 @@ internal class RapporteringJournalføringBehovLøser(
                     val brevkode = packet[BEHOV]["brevkode"].asText()
                     val json = packet[BEHOV]["json"].asText()
                     val pdf = packet[BEHOV]["pdf"].asText()
-                    val tilleggsopplysningerString = packet[BEHOV]["tilleggsopplysninger"].asText()
-                    logg.info { packet.toJson() }
 
-                    val tilleggsopplysninger =
-                        jacksonObjectMapper().readValue(
-                            tilleggsopplysningerString,
+                    val tilleggsopplysninger: List<Pair<String, String>> =
+                        jacksonObjectMapper().convertValue(
+                            packet[BEHOV]["tilleggsopplysninger"],
                             object : TypeReference<List<Pair<String, String>>>() {},
                         )
+
                     val dokumenter: List<Dokument> =
                         listOf(
                             opprettDokument(brevkode, json.encodeToByteArray(), Base64.getDecoder().decode(pdf)),
