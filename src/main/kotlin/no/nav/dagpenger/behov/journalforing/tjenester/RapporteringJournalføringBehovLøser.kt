@@ -67,6 +67,7 @@ internal class RapporteringJournalføringBehovLøser(
                     val json = packet[BEHOV]["json"].asText()
                     val pdf = packet[BEHOV]["pdf"].asText()
                     val tilleggsopplysningerString = packet[BEHOV]["tilleggsopplysninger"].asText()
+                    logg.info { packet.toJson() }
 
                     val tilleggsopplysninger =
                         jacksonObjectMapper().readValue(
