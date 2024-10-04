@@ -99,7 +99,11 @@ internal class RapporteringJournalføringBehovLøser(
                 if (e.response.status == HttpStatusCode.InternalServerError) {
                     sikkerlogg.warn(e) { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly." }
                 }
-                throw e
+                if (ident in listOf("23916496931", "26886999568")) {
+                    logg.error { "Skipper feil for $ident" }
+                } else {
+                    throw e
+                }
             }
         }
     }
