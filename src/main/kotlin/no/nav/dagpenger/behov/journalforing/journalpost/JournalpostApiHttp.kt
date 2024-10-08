@@ -134,7 +134,14 @@ internal class JournalpostApiHttp(
                                 )
                             },
                         eksternReferanseId = eksternReferanseId,
-                        tilleggsopplysninger = tilleggsopplysninger.map { Tilleggsopplysning(it.first, it.second) },
+                        tilleggsopplysninger = tilleggsopplysninger.map {
+                            // Nøkkel - maksimum 20 tegn
+                            // Verdi - maksimum 100 tegn
+                            Tilleggsopplysning(
+                                it.first.take(20),
+                                it.second.take(100),
+                            )
+                        },
                     ),
                 )
             }.body<Resultat>()
