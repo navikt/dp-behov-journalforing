@@ -13,6 +13,7 @@ import java.util.Base64
 import kotlin.test.assertContentEquals
 
 internal class RapporteringJournalføringBehovLøserTest {
+    private val BEHOV = "JournalføreRapportering"
     private val behovId = "34f6743c-bd9a-4902-ae68-fae0171b1e68"
     private val ident = "01020312345"
     private val periodeId = "periodeId123"
@@ -31,7 +32,7 @@ internal class RapporteringJournalføringBehovLøserTest {
           "@event_name": "behov",
           "@behovId": "$behovId",
           "@behov": [
-            "JournalføreRapportering"
+            "$BEHOV"
           ],
           "meldingsreferanseId":"d0ce2eef-ab53-4b06-acf3-4c85386dc561",
           "ident": "$ident",
@@ -113,7 +114,7 @@ internal class RapporteringJournalføringBehovLøserTest {
 
         with(testRapid.inspektør) {
             assertEquals(1, size)
-            assertEquals(journalpostId, field(0, "@løsning")["journalpostId"].asText())
+            assertEquals(journalpostId, field(0, "@løsning")["JournalføreRapportering"].asText())
         }
     }
 }

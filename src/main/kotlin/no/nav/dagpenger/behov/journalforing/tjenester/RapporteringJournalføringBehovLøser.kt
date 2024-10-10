@@ -90,7 +90,7 @@ internal class RapporteringJournalføringBehovLøser(
                         )
                     packet["@løsning"] =
                         mapOf(
-                            "journalpostId" to journalpost.id,
+                            BEHOV to journalpost.id,
                         )
                     context.publish(packet.toJson())
                     logg.info { "Løser behov $BEHOV med journalpostId=${journalpost.id}" }
