@@ -39,6 +39,7 @@ internal class RapporteringJournalføringBehovLøserTest {
           "JournalføreRapportering":{
             "periodeId": "$periodeId",
             "brevkode": "NAV 00-10.02",
+            "tittel": "Meldekort for uke 42-43 (14.10.2024 - 27.10.2024) elektronisk mottatt av NAV",
             "json": "{\"key1\": \"value1\"}",
             "pdf": "$base64EncodedPdf",
             "tilleggsopplysninger": [
@@ -81,7 +82,7 @@ internal class RapporteringJournalføringBehovLøserTest {
         assertEquals(1, sendteDokumenter.captured.size)
         with(sendteDokumenter.captured[0]) {
             assertEquals("NAV 00-10.02", this.brevkode)
-            assertEquals("Meldekort elektronisk mottatt av NAV", this.tittel)
+            assertEquals("Meldekort for uke 42-43 (14.10.2024 - 27.10.2024) elektronisk mottatt av NAV", this.tittel)
             assertEquals(2, this.varianter.size)
             assertEquals(JournalpostApi.Variant.Filtype.JSON, this.varianter[0].filtype)
             assertEquals(JournalpostApi.Variant.Format.ORIGINAL, this.varianter[0].format)

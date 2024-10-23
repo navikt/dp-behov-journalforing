@@ -40,6 +40,7 @@ internal class RapporteringJournalføringBehovLøser(
                     it.require(BEHOV) { behov ->
                         behov.required("periodeId")
                         behov.required("brevkode")
+                        behov.required("tittel")
                         behov.required("json")
                         behov.required("pdf")
                         behov.required("tilleggsopplysninger")
@@ -64,6 +65,7 @@ internal class RapporteringJournalføringBehovLøser(
                 logg.info("Mottok behov for ny journalpost for periode med id $periodeId")
                 runBlocking(MDCContext()) {
                     val brevkode = packet[BEHOV]["brevkode"].asText()
+                    val tittel = packet[BEHOV]["tittel"].asText()
                     val json = packet[BEHOV]["json"].asText()
                     val pdf = packet[BEHOV]["pdf"].asText()
 
@@ -75,7 +77,7 @@ internal class RapporteringJournalføringBehovLøser(
 
                     val dokumenter: List<Dokument> =
                         listOf(
-                            opprettDokument(brevkode, json.encodeToByteArray(), Base64.getDecoder().decode(pdf)),
+                            opprettDokument(brevkode, tittel, json.encodeToByteArray(), Base64.getDecoder().decode(pdf)),
                         )
 
                     sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
@@ -111,12 +113,13 @@ internal class RapporteringJournalføringBehovLøser(
 
     private fun opprettDokument(
         brevkode: String,
+        tittel: String,
         json: ByteArray,
         pdf: ByteArray,
     ): Dokument =
         Dokument(
             brevkode = brevkode,
-            tittel = DokumentTittelOppslag.hentTittel(brevkode),
+            tittel = tittel,
             varianter =
                 listOf(
                     Variant(
