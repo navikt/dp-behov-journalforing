@@ -87,6 +87,7 @@ internal class RapporteringJournalføringBehovLøser(
                             dokumenter = dokumenter,
                             eksternReferanseId = behovId,
                             tilleggsopplysninger = tilleggsopplysninger,
+                            forsøkFerdigstill = true,
                         )
                     packet["@løsning"] =
                         mapOf(

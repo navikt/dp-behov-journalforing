@@ -107,10 +107,11 @@ internal class JournalpostApiHttp(
         dokumenter: List<JournalpostApi.Dokument>,
         eksternReferanseId: String,
         tilleggsopplysninger: List<Pair<String, String>>,
+        forsøkFerdigstill: Boolean,
     ): Journalpost =
         client
             .post {
-                url { encodedPath = "$basePath/journalpost" }
+                url { encodedPath = "$basePath/journalpost?forsoekFerdigstill=$forsøkFerdigstill" }
                 header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
                 header(HttpHeaders.XCorrelationId, eksternReferanseId)
                 contentType(ContentType.Application.Json)

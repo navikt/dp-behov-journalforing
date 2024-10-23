@@ -72,6 +72,7 @@ internal class RapporteringJournalføringBehovLøserTest {
                 capture(sendteDokumenter),
                 eq(behovId),
                 capture(sendteTilleggsopplysninger),
+                eq(true),
             )
         } returns Journalpost(journalpostId)
 
