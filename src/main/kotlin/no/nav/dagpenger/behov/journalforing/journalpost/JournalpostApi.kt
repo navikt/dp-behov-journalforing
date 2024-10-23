@@ -8,7 +8,7 @@ internal interface JournalpostApi {
         dokumenter: List<Dokument>,
         eksternReferanseId: String,
         tilleggsopplysninger: List<Pair<String, String>> = emptyList(),
-        forsøkFerdigstill: Boolean = false,
+        forsøkFerdigstill: Boolean = true,
     ): Journalpost
 
     suspend fun opprett(
