@@ -115,20 +115,20 @@ internal class JournalpostApiHttp(
                 avsenderMottaker = Bruker(ident),
                 bruker = Bruker(ident),
                 dokumenter =
-                dokumenter.map { dokument ->
-                    Dokument(
-                        brevkode = dokument.brevkode,
-                        dokumentvarianter =
-                        dokument.varianter.map { variant ->
-                            Dokumentvariant(
-                                Filtype.valueOf(variant.filtype.toString()),
-                                Variant.valueOf(variant.format.toString()),
-                                Base64.getEncoder().encodeToString(variant.fysiskDokument),
-                            )
-                        },
-                        tittel = dokument.tittel,
-                    )
-                },
+                    dokumenter.map { dokument ->
+                        Dokument(
+                            brevkode = dokument.brevkode,
+                            dokumentvarianter =
+                                dokument.varianter.map { variant ->
+                                    Dokumentvariant(
+                                        Filtype.valueOf(variant.filtype.toString()),
+                                        Variant.valueOf(variant.format.toString()),
+                                        Base64.getEncoder().encodeToString(variant.fysiskDokument),
+                                    )
+                                },
+                            tittel = dokument.tittel,
+                        )
+                    },
                 eksternReferanseId = eksternReferanseId,
                 tilleggsopplysninger =
                 tilleggsopplysninger.map {
