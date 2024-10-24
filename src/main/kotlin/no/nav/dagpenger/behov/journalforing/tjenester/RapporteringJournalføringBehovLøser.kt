@@ -92,9 +92,10 @@ internal class RapporteringJournalføringBehovLøser(
                             tilleggsopplysninger = tilleggsopplysninger,
                             forsøkFerdigstill = true,
                             tittel = tittel,
-                            sak = JournalpostApiHttp.Sak(
-                                sakstype = "GENERELL_SAK"
-                            )
+                            sak =
+                                JournalpostApiHttp.Sak(
+                                    sakstype = "GENERELL_SAK",
+                                ),
                         )
                     packet["@løsning"] =
                         mapOf(
