@@ -54,16 +54,16 @@ internal class VedtaksbrevJournalføringBehovløser(
                 val resultat =
                     journalpostApi.opprett(
                         forsøkFerdigstill = true,
-                        payload =
-                            JournalpostApiHttp.JournalpostPayload(
+                        journalpost =
+                            JournalpostApiHttp.Journalpost(
                                 journalposttype = "UTGAAENDE",
                                 avsenderMottaker =
-                                    JournalpostApiHttp.JournalpostPayload.Bruker(
+                                    JournalpostApiHttp.Journalpost.Bruker(
                                         id = ident,
                                         idType = "FNR",
                                     ),
                                 bruker =
-                                    JournalpostApiHttp.JournalpostPayload.Bruker(
+                                    JournalpostApiHttp.Journalpost.Bruker(
                                         id = ident,
                                         idType = "FNR",
                                     ),

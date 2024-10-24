@@ -45,7 +45,7 @@ internal class JournalpostApiHttpTest {
                     )
                 }
             val apiClient = JournalpostApiHttp(mockEngine, mockk(relaxed = true))
-            val journalpost =
+            val resultat =
                 apiClient.opprett(
                     "brukerident",
                     listOf(
@@ -91,7 +91,7 @@ internal class JournalpostApiHttpTest {
                 assertEquals("456", andreDokument["brevkode"].asText())
                 assertEquals("vedleggtittel", andreDokument["tittel"].asText())
             }
-            assertEquals("467010363", journalpost.id)
+            assertEquals("467010363", resultat.journalpostId)
         }
     }
 

@@ -5,7 +5,7 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.slot
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
-import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Journalpost
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Resultat
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -75,7 +75,7 @@ internal class RapporteringJournalføringBehovLøserTest {
                 capture(sendteTilleggsopplysninger),
                 eq(true),
             )
-        } returns Journalpost(journalpostId)
+        } returns Resultat(journalpostId, true, emptyList(), "Journalpost ferdigstilt")
 
         testRapid.sendTestMessage(journalføreRapportering)
 

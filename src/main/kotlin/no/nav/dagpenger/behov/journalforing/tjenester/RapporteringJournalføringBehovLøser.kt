@@ -83,7 +83,7 @@ internal class RapporteringJournalføringBehovLøser(
                     sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
                     sikkerlogg.info { "Oppretter journalost basert på ${packet.toJson()}" }
 
-                    val journalpost =
+                    val resultat =
                         journalpostApi.opprett(
                             ident = ident,
                             dokumenter = dokumenter,
@@ -93,10 +93,10 @@ internal class RapporteringJournalføringBehovLøser(
                         )
                     packet["@løsning"] =
                         mapOf(
-                            BEHOV to journalpost.id,
+                            BEHOV to resultat.journalpostId,
                         )
                     context.publish(packet.toJson())
-                    logg.info { "Løser behov $BEHOV med journalpostId=${journalpost.id}" }
+                    logg.info { "Løser behov $BEHOV med journalpostId=${resultat.journalpostId}" }
                 }
             } catch (e: ClientRequestException) {
                 if (e.response.status == HttpStatusCode.InternalServerError) {

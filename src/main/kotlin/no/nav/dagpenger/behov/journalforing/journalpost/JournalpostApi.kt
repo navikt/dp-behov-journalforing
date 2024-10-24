@@ -9,16 +9,12 @@ internal interface JournalpostApi {
         eksternReferanseId: String,
         tilleggsopplysninger: List<Pair<String, String>> = emptyList(),
         forsøkFerdigstill: Boolean = true,
-    ): Journalpost
+    ): JournalpostApiHttp.Resultat
 
     suspend fun opprett(
         forsøkFerdigstill: Boolean,
-        payload: JournalpostApiHttp.JournalpostPayload,
+        journalpost: JournalpostApiHttp.Journalpost,
     ): JournalpostApiHttp.Resultat
-
-    data class Journalpost(
-        val id: String,
-    )
 
     data class Dokument(
         val brevkode: String?,

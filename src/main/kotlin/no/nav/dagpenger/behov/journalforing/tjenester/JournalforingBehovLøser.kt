@@ -85,10 +85,10 @@ internal class JournalforingBehovLøser(
                             ident = ident,
                             dokumenter = dokumenter,
                             eksternReferanseId = behovId,
-                        ).let { journalpost ->
+                        ).let { resultat ->
                             packet["@løsning"] =
                                 mapOf(
-                                    NY_JOURNAL_POST to journalpost.id,
+                                    NY_JOURNAL_POST to resultat.journalpostId,
                                 )
                             val message = packet.toJson()
                             context.publish(message)

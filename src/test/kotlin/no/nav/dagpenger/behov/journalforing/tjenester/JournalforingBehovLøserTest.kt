@@ -6,9 +6,9 @@ import io.mockk.mockk
 import io.mockk.slot
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
-import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Journalpost
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype.JSON
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Resultat
 import no.nav.dagpenger.behov.journalforing.soknad.SoknadHttp
 import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
@@ -39,7 +39,7 @@ internal class JournalforingBehovLøserTest {
         val sendteDokumenter = slot<List<JournalpostApi.Dokument>>()
         coEvery {
             journalpostApi.opprett(any(), capture(sendteDokumenter), any())
-        } returns Journalpost("journalpost123")
+        } returns Resultat("journalpost123", true, emptyList(), "Journalpost ferdigstilt")
 
         testRapid.sendTestMessage(dagpengerInnsending)
 
@@ -73,7 +73,7 @@ internal class JournalforingBehovLøserTest {
         val sendteDokumenter = slot<List<JournalpostApi.Dokument>>()
         coEvery {
             journalpostApi.opprett(any(), capture(sendteDokumenter), any())
-        } returns Journalpost("journalpost123")
+        } returns Resultat("journalpost123", true, emptyList(), "Journalpost ferdigstilt")
 
         testRapid.sendTestMessage(generellInnsending)
 

@@ -32,10 +32,9 @@ import io.ktor.http.encodedPath
 import io.ktor.serialization.jackson.jackson
 import mu.KotlinLogging
 import no.nav.dagpenger.behov.journalforing.Configuration
-import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Journalpost
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Variant
-import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.JournalpostPayload.Bruker
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journalpost.Bruker
 import java.util.Base64
 
 private val logg = KotlinLogging.logger {}
@@ -88,18 +87,18 @@ internal class JournalpostApiHttp(
 
     override suspend fun opprett(
         forsøkFerdigstill: Boolean,
-        payload: JournalpostPayload,
+        journalpost: Journalpost,
     ): Resultat =
         client
             .post {
                 url { encodedPath = "$basePath/journalpost?forsoekFerdigstill=$forsøkFerdigstill" }
                 header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-                header(HttpHeaders.XCorrelationId, payload.eksternReferanseId)
+                header(HttpHeaders.XCorrelationId, journalpost.eksternReferanseId)
                 contentType(ContentType.Application.Json)
-                setBody(payload)
+                setBody(journalpost)
             }.body<Resultat>()
             .also {
-                logg.info { "Opprettet journalpost med id ${it.journalpostId} for behovId ${payload.eksternReferanseId}" }
+                logg.info { "Opprettet journalpost med id ${it.journalpostId} for behovId ${journalpost.eksternReferanseId}" }
             }
 
     override suspend fun opprett(
@@ -108,7 +107,7 @@ internal class JournalpostApiHttp(
         eksternReferanseId: String,
         tilleggsopplysninger: List<Pair<String, String>>,
         forsøkFerdigstill: Boolean,
-    ): Journalpost =
+    ): Resultat =
         client
             .post {
                 url { encodedPath = "$basePath/journalpost?forsoekFerdigstill=$forsøkFerdigstill" }
@@ -116,7 +115,7 @@ internal class JournalpostApiHttp(
                 header(HttpHeaders.XCorrelationId, eksternReferanseId)
                 contentType(ContentType.Application.Json)
                 setBody(
-                    JournalpostPayload(
+                    Journalpost(
                         avsenderMottaker = Bruker(ident),
                         bruker = Bruker(ident),
                         dokumenter =
@@ -147,12 +146,12 @@ internal class JournalpostApiHttp(
                     ),
                 )
             }.body<Resultat>()
-            .let {
-                Journalpost(it.journalpostId)
+            .also {
+                logg.info { "Opprettet journalpost med id ${it.journalpostId} for behovId $eksternReferanseId" }
             }
 
     @JsonAutoDetect(fieldVisibility = Visibility.ANY)
-    internal data class JournalpostPayload(
+    internal data class Journalpost(
         val avsenderMottaker: Bruker,
         val bruker: Bruker,
         val dokumenter: List<Dokument>,
