@@ -110,37 +110,38 @@ internal class JournalpostApiHttp(
         tittel: String?,
         sak: Sak?,
     ): Resultat {
-        val journalpost = Journalpost(
-            avsenderMottaker = Bruker(ident),
-            bruker = Bruker(ident),
-            dokumenter =
-            dokumenter.map { dokument ->
-                Dokument(
-                    brevkode = dokument.brevkode,
-                    dokumentvarianter =
-                    dokument.varianter.map { variant ->
-                        Dokumentvariant(
-                            Filtype.valueOf(variant.filtype.toString()),
-                            Variant.valueOf(variant.format.toString()),
-                            Base64.getEncoder().encodeToString(variant.fysiskDokument),
-                        )
-                    },
-                    tittel = dokument.tittel,
-                )
-            },
-            eksternReferanseId = eksternReferanseId,
-            tilleggsopplysninger =
-            tilleggsopplysninger.map {
-                // Nøkkel - maksimum 20 tegn
-                // Verdi - maksimum 100 tegn
-                Tilleggsopplysning(
-                    it.first.take(20),
-                    it.second.take(100),
-                )
-            },
-            tittel = tittel,
-            sak = sak,
-        )
+        val journalpost =
+            Journalpost(
+                avsenderMottaker = Bruker(ident),
+                bruker = Bruker(ident),
+                dokumenter =
+                dokumenter.map { dokument ->
+                    Dokument(
+                        brevkode = dokument.brevkode,
+                        dokumentvarianter =
+                        dokument.varianter.map { variant ->
+                            Dokumentvariant(
+                                Filtype.valueOf(variant.filtype.toString()),
+                                Variant.valueOf(variant.format.toString()),
+                                Base64.getEncoder().encodeToString(variant.fysiskDokument),
+                            )
+                        },
+                        tittel = dokument.tittel,
+                    )
+                },
+                eksternReferanseId = eksternReferanseId,
+                tilleggsopplysninger =
+                tilleggsopplysninger.map {
+                    // Nøkkel - maksimum 20 tegn
+                    // Verdi - maksimum 100 tegn
+                    Tilleggsopplysning(
+                        it.first.take(20),
+                        it.second.take(100),
+                    )
+                },
+                tittel = tittel,
+                sak = sak,
+            )
 
         return opprett(forsøkFerdigstill, journalpost)
     }
