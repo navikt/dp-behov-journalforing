@@ -107,6 +107,8 @@ internal class JournalpostApiHttp(
         eksternReferanseId: String,
         tilleggsopplysninger: List<Pair<String, String>>,
         forsøkFerdigstill: Boolean,
+        tittel: String?,
+        sak: Sak?,
     ): Resultat =
         client
             .post {
@@ -143,6 +145,8 @@ internal class JournalpostApiHttp(
                                     it.second.take(100),
                                 )
                             },
+                        tittel = tittel,
+                        sak = sak,
                     ),
                 )
             }.body<Resultat>()
@@ -173,8 +177,8 @@ internal class JournalpostApiHttp(
 
     internal data class Sak(
         val sakstype: String = "FAGSAK",
-        val fagsakId: String,
-        val fagsakSystem: String,
+        val fagsakId: String? = null,
+        val fagsakSystem: String? = null,
     )
 
     internal data class Dokument(

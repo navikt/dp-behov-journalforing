@@ -74,6 +74,8 @@ internal class RapporteringJournalføringBehovLøserTest {
                 eq(behovId),
                 capture(sendteTilleggsopplysninger),
                 eq(true),
+                any(),
+                any(),
             )
         } returns Resultat(journalpostId, true, emptyList(), "Journalpost ferdigstilt")
 

@@ -13,6 +13,7 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
 import no.nav.helse.rapids_rivers.JsonMessage
 import no.nav.helse.rapids_rivers.MessageContext
 import no.nav.helse.rapids_rivers.RapidsConnection
@@ -90,6 +91,10 @@ internal class RapporteringJournalføringBehovLøser(
                             eksternReferanseId = behovId,
                             tilleggsopplysninger = tilleggsopplysninger,
                             forsøkFerdigstill = true,
+                            tittel = tittel,
+                            sak = JournalpostApiHttp.Sak(
+                                sakstype = "GENERELL_SAK"
+                            )
                         )
                     packet["@løsning"] =
                         mapOf(

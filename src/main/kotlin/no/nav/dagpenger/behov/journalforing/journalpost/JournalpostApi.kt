@@ -1,5 +1,6 @@
 package no.nav.dagpenger.behov.journalforing.journalpost
 
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Sak
 import no.nav.dagpenger.behov.journalforing.tjenester.prettyPrintFileSize
 
 internal interface JournalpostApi {
@@ -9,6 +10,8 @@ internal interface JournalpostApi {
         eksternReferanseId: String,
         tilleggsopplysninger: List<Pair<String, String>> = emptyList(),
         forsøkFerdigstill: Boolean = false,
+        tittel: String? = null,
+        sak: Sak? = null,
     ): JournalpostApiHttp.Resultat
 
     suspend fun opprett(
