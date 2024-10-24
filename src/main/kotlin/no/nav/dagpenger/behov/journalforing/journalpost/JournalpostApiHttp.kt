@@ -109,50 +109,41 @@ internal class JournalpostApiHttp(
         forsøkFerdigstill: Boolean,
         tittel: String?,
         sak: Sak?,
-    ): Resultat =
-        client
-            .post {
-                url { encodedPath = "$basePath/journalpost?forsoekFerdigstill=$forsøkFerdigstill" }
-                header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-                header(HttpHeaders.XCorrelationId, eksternReferanseId)
-                contentType(ContentType.Application.Json)
-                setBody(
-                    Journalpost(
-                        avsenderMottaker = Bruker(ident),
-                        bruker = Bruker(ident),
-                        dokumenter =
-                            dokumenter.map { dokument ->
-                                Dokument(
-                                    brevkode = dokument.brevkode,
-                                    dokumentvarianter =
-                                        dokument.varianter.map { variant ->
-                                            Dokumentvariant(
-                                                Filtype.valueOf(variant.filtype.toString()),
-                                                Variant.valueOf(variant.format.toString()),
-                                                Base64.getEncoder().encodeToString(variant.fysiskDokument),
-                                            )
-                                        },
-                                    tittel = dokument.tittel,
-                                )
-                            },
-                        eksternReferanseId = eksternReferanseId,
-                        tilleggsopplysninger =
-                            tilleggsopplysninger.map {
-                                // Nøkkel - maksimum 20 tegn
-                                // Verdi - maksimum 100 tegn
-                                Tilleggsopplysning(
-                                    it.first.take(20),
-                                    it.second.take(100),
-                                )
-                            },
-                        tittel = tittel,
-                        sak = sak,
-                    ),
+    ): Resultat {
+        val journalpost = Journalpost(
+            avsenderMottaker = Bruker(ident),
+            bruker = Bruker(ident),
+            dokumenter =
+            dokumenter.map { dokument ->
+                Dokument(
+                    brevkode = dokument.brevkode,
+                    dokumentvarianter =
+                    dokument.varianter.map { variant ->
+                        Dokumentvariant(
+                            Filtype.valueOf(variant.filtype.toString()),
+                            Variant.valueOf(variant.format.toString()),
+                            Base64.getEncoder().encodeToString(variant.fysiskDokument),
+                        )
+                    },
+                    tittel = dokument.tittel,
                 )
-            }.body<Resultat>()
-            .also {
-                logg.info { "Opprettet journalpost med id ${it.journalpostId} for behovId $eksternReferanseId" }
-            }
+            },
+            eksternReferanseId = eksternReferanseId,
+            tilleggsopplysninger =
+            tilleggsopplysninger.map {
+                // Nøkkel - maksimum 20 tegn
+                // Verdi - maksimum 100 tegn
+                Tilleggsopplysning(
+                    it.first.take(20),
+                    it.second.take(100),
+                )
+            },
+            tittel = tittel,
+            sak = sak,
+        )
+
+        return opprett(forsøkFerdigstill, journalpost)
+    }
 
     @JsonAutoDetect(fieldVisibility = Visibility.ANY)
     internal data class Journalpost(
