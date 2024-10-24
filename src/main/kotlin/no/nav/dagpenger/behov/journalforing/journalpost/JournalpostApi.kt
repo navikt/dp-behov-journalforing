@@ -8,7 +8,7 @@ internal interface JournalpostApi {
         dokumenter: List<Dokument>,
         eksternReferanseId: String,
         tilleggsopplysninger: List<Pair<String, String>> = emptyList(),
-        forsøkFerdigstill: Boolean = true,
+        forsøkFerdigstill: Boolean = false,
     ): JournalpostApiHttp.Resultat
 
     suspend fun opprett(
