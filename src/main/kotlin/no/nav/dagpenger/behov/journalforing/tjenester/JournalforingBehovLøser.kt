@@ -85,7 +85,7 @@ internal class JournalforingBehovLøser(
                             ident = ident,
                             dokumenter = dokumenter,
                             eksternReferanseId = behovId,
-                            forsøkFerdigstill = true,
+                        forsøkFerdigstill = true,
                         ).let { resultat ->
                             packet["@løsning"] =
                                 mapOf(
