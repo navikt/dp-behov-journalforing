@@ -85,7 +85,7 @@ internal class JournalforingBehovLøser(
                             ident = ident,
                             dokumenter = dokumenter,
                             eksternReferanseId = behovId,
-                        forsøkFerdigstill = true,
+                            forsøkFerdigstill = true,
                         ).let { resultat ->
                             packet["@løsning"] =
                                 mapOf(
@@ -101,6 +101,7 @@ internal class JournalforingBehovLøser(
                             sikkerlogg.warn(e) {
                                 "Feilet for '$ident'. Hvis dette er i dev, forsøk å importere identen på nytt i Dolly."
                             }
+
                         else -> sikkerlogg.error(e) { "Opprettelse av  journalpost med $dokumenter feilet" }
                     }
                     throw e
