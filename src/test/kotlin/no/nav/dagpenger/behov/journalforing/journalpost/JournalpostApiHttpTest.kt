@@ -33,7 +33,43 @@ internal class JournalpostApiHttpTest {
 
     @ParameterizedTest(name = "Oppretter journalpost gir status {index}")
     @ValueSource(ints = [201, 409])
-    fun `oppretter journalposter`(status: Int) {
+    fun `oppretter journalposter uten tilleggsopplysninger`(status: Int) {
+        test(status)
+    }
+
+    @Test
+    fun `oppretter journalposter med tilleggsopplysninger`() {
+        test(
+            201,
+            listOf(
+                Pair("nøkkel1", "verdi1"),
+                Pair("nøkkel2", ""),
+            )
+        )
+    }
+
+    @Test
+    fun `kaster exception ved ekte feil`() {
+        runBlocking {
+            val mockEngine =
+                MockEngine {
+                    respond(
+                        content = ByteReadChannel(exceptionResponse),
+                        status = HttpStatusCode.BadRequest,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
+                    )
+                }
+            val apiClient = JournalpostApiHttp(mockEngine, mockk(relaxed = true))
+            assertThrows<ClientRequestException> {
+                apiClient.opprett("brukerident", listOf(), UUID.randomUUID().toString())
+            }
+        }
+    }
+
+    private fun test(
+        status: Int,
+        tilleggsopplysninger: List<Pair<String, String>> = emptyList(),
+    ) {
         val eksternReferanseId = UUID.randomUUID().toString()
         runBlocking {
             val mockEngine =
@@ -53,21 +89,22 @@ internal class JournalpostApiHttpTest {
                             brevkode = "123",
                             tittel = "dagpengersøknad",
                             varianter =
-                                listOf(
-                                    Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
-                                    Variant(PDF, FULLVERSJON, fysiskDokument = ByteArray(2)),
-                                ),
+                            listOf(
+                                Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
+                                Variant(PDF, FULLVERSJON, fysiskDokument = ByteArray(2)),
+                            ),
                         ),
                         Dokument(
                             brevkode = "456",
                             tittel = "vedleggtittel",
                             varianter =
-                                listOf(
-                                    Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
-                                ),
+                            listOf(
+                                Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
+                            ),
                         ),
                     ),
                     eksternReferanseId,
+                    tilleggsopplysninger,
                 )
 
             with(mockEngine.requestHistory.first()) {
@@ -90,26 +127,19 @@ internal class JournalpostApiHttpTest {
                 val andreDokument = journalpost["dokumenter"].last()
                 assertEquals("456", andreDokument["brevkode"].asText())
                 assertEquals("vedleggtittel", andreDokument["tittel"].asText())
+
+                if (tilleggsopplysninger.isNotEmpty()) {
+                    journalpost["tilleggsopplysninger"].asIterable().forEachIndexed { index, element ->
+                        assertEquals(tilleggsopplysninger[index].first, element["nokkel"].asText())
+                        if (tilleggsopplysninger[index].second.isBlank()) assertEquals(
+                            "UKJENT",
+                            element["verdi"].asText()
+                        )
+                        else assertEquals(tilleggsopplysninger[index].second, element["verdi"].asText())
+                    }
+                }
             }
             assertEquals("467010363", resultat.journalpostId)
-        }
-    }
-
-    @Test
-    fun `kaster exception ved ekte feil`() {
-        runBlocking {
-            val mockEngine =
-                MockEngine {
-                    respond(
-                        content = ByteReadChannel(exceptionResponse),
-                        status = HttpStatusCode.BadRequest,
-                        headers = headersOf(HttpHeaders.ContentType, "application/json"),
-                    )
-                }
-            val apiClient = JournalpostApiHttp(mockEngine, mockk(relaxed = true))
-            assertThrows<ClientRequestException> {
-                apiClient.opprett("brukerident", listOf(), UUID.randomUUID().toString())
-            }
         }
     }
 }
