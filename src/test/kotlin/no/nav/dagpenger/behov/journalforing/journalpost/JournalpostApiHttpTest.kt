@@ -44,7 +44,7 @@ internal class JournalpostApiHttpTest {
             listOf(
                 Pair("nøkkel1", "verdi1"),
                 Pair("nøkkel2", ""),
-            )
+            ),
         )
     }
 
@@ -89,18 +89,18 @@ internal class JournalpostApiHttpTest {
                             brevkode = "123",
                             tittel = "dagpengersøknad",
                             varianter =
-                            listOf(
-                                Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
-                                Variant(PDF, FULLVERSJON, fysiskDokument = ByteArray(2)),
-                            ),
+                                listOf(
+                                    Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
+                                    Variant(PDF, FULLVERSJON, fysiskDokument = ByteArray(2)),
+                                ),
                         ),
                         Dokument(
                             brevkode = "456",
                             tittel = "vedleggtittel",
                             varianter =
-                            listOf(
-                                Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
-                            ),
+                                listOf(
+                                    Variant(JPEG, ARKIV, fysiskDokument = ByteArray(2)),
+                                ),
                         ),
                     ),
                     eksternReferanseId,
@@ -131,11 +131,15 @@ internal class JournalpostApiHttpTest {
                 if (tilleggsopplysninger.isNotEmpty()) {
                     journalpost["tilleggsopplysninger"].asIterable().forEachIndexed { index, element ->
                         assertEquals(tilleggsopplysninger[index].first, element["nokkel"].asText())
-                        if (tilleggsopplysninger[index].second.isBlank()) assertEquals(
-                            "UKJENT",
-                            element["verdi"].asText()
-                        )
-                        else assertEquals(tilleggsopplysninger[index].second, element["verdi"].asText())
+                        if (tilleggsopplysninger[index].second.isBlank()) {
+                            assertEquals(
+                                "UKJENT",
+                                element["verdi"].asText()
+                            )
+                        }
+                        else {
+                            assertEquals(tilleggsopplysninger[index].second, element["verdi"].asText())
+                        }
                     }
                 }
             }
