@@ -134,10 +134,9 @@ internal class JournalpostApiHttpTest {
                         if (tilleggsopplysninger[index].second.isBlank()) {
                             assertEquals(
                                 "UKJENT",
-                                element["verdi"].asText()
+                                element["verdi"].asText(),
                             )
-                        }
-                        else {
+                        } else {
                             assertEquals(tilleggsopplysninger[index].second, element["verdi"].asText())
                         }
                     }
