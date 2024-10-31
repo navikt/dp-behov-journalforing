@@ -131,12 +131,12 @@ internal class JournalpostApiHttp(
                     },
                 eksternReferanseId = eksternReferanseId,
                 tilleggsopplysninger =
-                    tilleggsopplysninger.map {
+                    tilleggsopplysninger.map { pair ->
                         // Nøkkel - maksimum 20 tegn
                         // Verdi - maksimum 100 tegn
                         Tilleggsopplysning(
-                            it.first.take(20),
-                            it.second.take(100),
+                            pair.first.take(20),
+                            pair.second.take(100).ifBlank { "UKJENT" },
                         )
                     },
                 tittel = tittel,
