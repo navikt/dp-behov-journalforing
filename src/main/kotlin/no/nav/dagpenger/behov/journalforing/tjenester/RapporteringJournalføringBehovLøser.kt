@@ -2,8 +2,14 @@ package no.nav.dagpenger.behov.journalforing.tjenester
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode
+import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import mu.KotlinLogging
@@ -14,10 +20,6 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
 import java.util.Base64
 
 internal class RapporteringJournalføringBehovLøser(
@@ -33,9 +35,11 @@ internal class RapporteringJournalføringBehovLøser(
     init {
         River(rapidsConnection)
             .apply {
-                validate { it.demandValue("@event_name", "behov") }
-                validate { it.demandAll("@behov", listOf(BEHOV)) }
-                validate { it.rejectKey("@løsning") }
+                precondition {
+                    it.requireValue("@event_name", "behov")
+                    it.requireAll("@behov", listOf(BEHOV))
+                    it.forbid("@løsning")
+                }
                 validate { it.requireKey("@behovId", "ident") }
                 validate {
                     it.require(BEHOV) { behov ->
@@ -53,6 +57,8 @@ internal class RapporteringJournalføringBehovLøser(
     override fun onPacket(
         packet: JsonMessage,
         context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
     ) {
         val ident = packet["ident"].asText()
         val periodeId = packet[BEHOV]["periodeId"].asText()
@@ -78,7 +84,12 @@ internal class RapporteringJournalføringBehovLøser(
 
                     val dokumenter: List<Dokument> =
                         listOf(
-                            opprettDokument(brevkode, tittel, json.encodeToByteArray(), Base64.getDecoder().decode(pdf)),
+                            opprettDokument(
+                                brevkode,
+                                tittel,
+                                json.encodeToByteArray(),
+                                Base64.getDecoder().decode(pdf),
+                            ),
                         )
 
                     sikkerlogg.info { "Oppretter journalpost med $dokumenter" }

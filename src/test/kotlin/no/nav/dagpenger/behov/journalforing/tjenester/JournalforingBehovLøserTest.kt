@@ -1,5 +1,6 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.ktor.utils.io.core.toByteArray
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -10,7 +11,6 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.F
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Resultat
 import no.nav.dagpenger.behov.journalforing.soknad.SoknadHttp
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

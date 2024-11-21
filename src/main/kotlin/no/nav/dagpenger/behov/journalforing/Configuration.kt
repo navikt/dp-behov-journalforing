@@ -67,6 +67,8 @@ internal object Configuration {
 
     private fun azureAdTokenSupplier(scope: String): () -> String =
         {
-            runBlocking { azureAdClient.clientCredentials(scope).accessToken }
+            runBlocking {
+                azureAdClient.clientCredentials(scope).accessToken ?: throw RuntimeException("Kunne ikke finne token")
+            }
         }
 }

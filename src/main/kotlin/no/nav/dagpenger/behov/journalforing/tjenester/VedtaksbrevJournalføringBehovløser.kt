@@ -1,16 +1,18 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers.isMissingOrNull
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.dagpenger.behov.journalforing.fillager.FilURN
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
-import no.nav.helse.rapids_rivers.isMissingOrNull
 import java.util.Base64
 
 internal class VedtaksbrevJournalføringBehovløser(
@@ -24,11 +26,13 @@ internal class VedtaksbrevJournalføringBehovløser(
         private val logger = KotlinLogging.logger {}
         private val sikkerlogg = KotlinLogging.logger("tjenestekall.VedtaksbrevJournalføringBehovløser")
         val rapidFilter: River.() -> Unit = {
-            validate { it.demandValue("@event_name", "behov") }
-            validate { it.demandAll("@behov", listOf(BEHOV_NAVN)) }
+            precondition {
+                it.requireValue("@event_name", "behov")
+                it.requireAll("@behov", listOf(BEHOV_NAVN))
+                it.forbid("@løsning")
+            }
             validate { it.requireKey("ident", "sak", "pdfUrn", "@behovId") }
             validate { it.interestedIn("skjemaKode", "tittel") }
-            validate { it.rejectKey("@løsning") }
         }
     }
 
@@ -39,6 +43,8 @@ internal class VedtaksbrevJournalføringBehovløser(
     override fun onPacket(
         packet: JsonMessage,
         context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
     ) {
         val filUrn: FilURN = packet.filUrn()
         val ident = packet.ident()

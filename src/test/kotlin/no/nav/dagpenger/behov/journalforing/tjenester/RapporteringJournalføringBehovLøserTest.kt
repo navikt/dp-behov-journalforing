@@ -1,12 +1,12 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.ktor.utils.io.core.toByteArray
 import io.mockk.coEvery
 import io.mockk.mockk
 import io.mockk.slot
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Resultat
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.Base64

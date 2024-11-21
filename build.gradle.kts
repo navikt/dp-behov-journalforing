@@ -29,7 +29,7 @@ dependencies {
 
     implementation(libs.konfig)
     implementation(libs.kotlin.logging)
-    implementation("com.github.navikt.dp-biblioteker:oauth2-klient:2024.04.19-22.15.14f433acbbcb")
+    implementation("no.nav.dagpenger:oauth2-klient:2024.10.31-15.02.1d4f08a38d24")
     implementation(libs.bundles.ktor.client)
     implementation("io.ktor:ktor-serialization-jackson:${libs.versions.ktor.get()}")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.8.1")
@@ -39,6 +39,7 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.ktor.client.mock)
     testImplementation(libs.bundles.kotest.assertions)
+    testImplementation(libs.rapids.and.rivers.test)
     testImplementation("org.junit.jupiter:junit-jupiter-params:${libs.versions.junit.get()}")
 }
 

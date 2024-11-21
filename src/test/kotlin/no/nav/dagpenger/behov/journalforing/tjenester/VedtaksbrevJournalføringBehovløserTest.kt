@@ -1,5 +1,6 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
+import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.assertions.json.shouldEqualSpecifiedJsonIgnoringOrder
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -11,7 +12,6 @@ import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
 import no.nav.dagpenger.behov.journalforing.tjenester.VedtaksbrevJournalføringBehovløser.JournalpostIkkeFerdigstiltException
-import no.nav.helse.rapids_rivers.testsupport.TestRapid
 import org.junit.jupiter.api.Test
 
 class VedtaksbrevJournalføringBehovløserTest {

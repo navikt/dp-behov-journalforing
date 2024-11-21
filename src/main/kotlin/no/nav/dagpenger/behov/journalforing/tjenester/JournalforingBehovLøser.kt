@@ -1,8 +1,14 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode
+import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import mu.KotlinLogging
@@ -15,10 +21,6 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
 import no.nav.dagpenger.behov.journalforing.soknad.SoknadHttp
-import no.nav.helse.rapids_rivers.JsonMessage
-import no.nav.helse.rapids_rivers.MessageContext
-import no.nav.helse.rapids_rivers.RapidsConnection
-import no.nav.helse.rapids_rivers.River
 import kotlin.math.log10
 import kotlin.math.pow
 
@@ -38,8 +40,10 @@ internal class JournalforingBehovLøser(
     init {
         River(rapidsConnection)
             .apply {
-                validate { it.demandAll("@behov", listOf(NY_JOURNAL_POST)) }
-                validate { it.rejectKey("@løsning") }
+                precondition {
+                    it.requireAll("@behov", listOf(NY_JOURNAL_POST))
+                    it.forbid("@løsning")
+                }
                 validate { it.requireKey("@behovId", "søknad_uuid", "ident", "type", NY_JOURNAL_POST) }
             }.register(this)
     }
@@ -47,6 +51,8 @@ internal class JournalforingBehovLøser(
     override fun onPacket(
         packet: JsonMessage,
         context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
     ) {
         val søknadId = packet["søknad_uuid"].asText()
         val ident = packet["ident"].asText()

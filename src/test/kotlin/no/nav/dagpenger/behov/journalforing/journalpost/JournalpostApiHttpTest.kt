@@ -9,6 +9,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.readText
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
