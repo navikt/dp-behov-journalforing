@@ -63,7 +63,7 @@ internal class RapporteringJournalføringBehovLøser(
         val ident = packet["ident"].asText()
         val periodeId = packet[BEHOV]["periodeId"].asText()
         val behovId = packet["@behovId"].asText()
-        if(behovId == "739e4bfd-7bda-4b58-88c7-b64cd9896def") {
+        if (behovId == "739e4bfd-7bda-4b58-88c7-b64cd9896def") {
             logg.warn { "Skipper journalforing av periode med id $periodeId " }
             return
         }
