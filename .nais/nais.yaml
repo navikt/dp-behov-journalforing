@@ -38,5 +38,5 @@ spec:
     - name: DOKARKIV_INGRESS
       value: {{ dokarkiv.ingress }}
     - name: JDK_JAVA_OPTIONS
-      value: -XX:+UseParallelGC -XX:MaxRAMPercentage=25.0 -XX:ActiveProcessorCount=4
+      value: -XX:+UseParallelGC -XX:MaxRAMPercentage=25.0 -XX:ActiveProcessorCount=4 -XX:+PrintFlagsFinal
 
