@@ -26,7 +26,7 @@ spec:
     # InitiatingHeapOccupancyPercent = 25% betyr at GC starter når 25% av heap er brukt.
     # 25% av 1536 = 384Mi. Det betyr at appen bør ligge på rundt 384Mi ved vanlig drift.
     - name: JDK_JAVA_OPTIONS
-      value: -XX:+UseParallelGC -XX:InitiatingHeapOccupancyPercent=25.0 -XX:MaxRAMPercentage=25.0 -XX:ActiveProcessorCount=4
+      value: -XX:+UseParallelGC -XX:InitiatingHeapOccupancyPercent=25 -XX:MaxRAMPercentage=25.0 -XX:ActiveProcessorCount=4
     - name: DOKARKIV_INGRESS
       value: {{ dokarkiv.ingress }}
   secureLogs:
