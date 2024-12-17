@@ -16,10 +16,10 @@ spec:
     max: 3
   resources:
     limits:
-      memory: 2048Mi
+      memory: 2560Mi
     requests:
       cpu: 50m
-      memory: 512Mi
+      memory: 768Mi
   secureLogs:
     enabled: true
   kafka:
