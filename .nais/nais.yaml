@@ -16,10 +16,19 @@ spec:
     max: 3
   resources:
     limits:
-      memory: 2560Mi
+      memory: 6144Mi
     requests:
       cpu: 50m
-      memory: 768Mi
+      memory: 512Mi
+  env:
+    # Ganske unik minne tuning for denne appen. Den trenger mye minne i korte perioder.
+    # 25% av 6144 = 1536Mi tilgjengelig for heap.
+    # InitiatingHeapOccupancyPercent = 25% betyr at GC starter når 25% av heap er brukt.
+    # 25% av 1536 = 384Mi. Det betyr at appen bør ligge på rundt 384Mi ved vanlig drift.
+    - name: JDK_JAVA_OPTIONS
+      value: -XX:+UseParallelGC -XX:InitiatingHeapOccupancyPercent=25.0 -XX:MaxRAMPercentage=25.0 -XX:ActiveProcessorCount=4
+    - name: DOKARKIV_INGRESS
+      value: {{ dokarkiv.ingress }}
   secureLogs:
     enabled: true
   kafka:
@@ -34,9 +43,4 @@ spec:
         - application: dp-soknad
       external:
         - host: {{ dokarkiv.ingress }}
-  env:
-    - name: DOKARKIV_INGRESS
-      value: {{ dokarkiv.ingress }}
-    - name: JDK_JAVA_OPTIONS
-      value: -XX:+UseParallelGC -XX:MaxRAMPercentage=25.0 -XX:ActiveProcessorCount=4 -XX:+PrintFlagsFinal
 
