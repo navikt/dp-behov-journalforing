@@ -108,16 +108,17 @@ internal class JournalforingBehovLøser(
                                 "Feilet for '$ident'. Hvis dette er i dev, forsøk å importere identen på nytt i Dolly."
                             }
                             context.publish(
-                                JsonMessage.newMessage(
-                                    "opprett_journalpost_feilet", mapOf(
-                                        "behovId" to behovId,
-                                        "søknadId" to søknadId,
-                                        "type" to innsendingType
-                                    )
-                                ).toJson()
+                                JsonMessage
+                                    .newMessage(
+                                        "opprett_journalpost_feilet",
+                                        mapOf(
+                                            "behovId" to behovId,
+                                            "søknadId" to søknadId,
+                                            "type" to innsendingType,
+                                        ),
+                                    ).toJson(),
                             )
                         }
-
 
                         else -> sikkerlogg.error(e) { "Opprettelse av  journalpost med $dokumenter feilet" }
                     }
