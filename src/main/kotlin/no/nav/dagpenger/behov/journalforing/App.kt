@@ -8,6 +8,7 @@ import no.nav.dagpenger.behov.journalforing.fillager.FillagerHttp
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
 import no.nav.dagpenger.behov.journalforing.soknad.SoknadHttp
 import no.nav.dagpenger.behov.journalforing.tjenester.JournalforingBehovLøser
+import no.nav.dagpenger.behov.journalforing.tjenester.MinidialogJournalføringBehovLøser
 import no.nav.dagpenger.behov.journalforing.tjenester.RapporteringJournalføringBehovLøser
 import no.nav.dagpenger.behov.journalforing.tjenester.VedtaksbrevJournalføringBehovløser
 import no.nav.helse.rapids_rivers.RapidApplication
@@ -27,6 +28,10 @@ internal object App : RapidsConnection.StatusListener {
                 fillager = fillager,
                 journalpostApi = journalpostApi,
                 faktahenter = SoknadHttp(tokenProvider = dpSøknadTokenProvider),
+            )
+            MinidialogJournalføringBehovLøser(
+                rapidsConnection = it,
+                journalpostApi = journalpostApi,
             )
             RapporteringJournalføringBehovLøser(
                 rapidsConnection = it,
