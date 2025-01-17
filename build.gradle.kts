@@ -3,7 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     application
-    kotlin("jvm") version "1.9.24"
+    kotlin("jvm") version "2.1.0"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
     kotlin("plugin.serialization") version "1.9.24"
 }
