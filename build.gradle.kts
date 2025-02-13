@@ -3,9 +3,9 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     application
-    kotlin("jvm") version "1.9.24"
+    kotlin("jvm") version "2.1.10"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.2"
-    kotlin("plugin.serialization") version "1.9.24"
+    kotlin("plugin.serialization") version "2.1.10"
 }
 
 repositories {
@@ -32,7 +32,7 @@ dependencies {
     implementation("no.nav.dagpenger:oauth2-klient:2024.12.19-12.57.9d42f60a1165")
     implementation(libs.bundles.ktor.client)
     implementation("io.ktor:ktor-serialization-jackson:${libs.versions.ktor.get()}")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.10.1")
     implementation("de.slub-dresden:urnlib:2.0.1")
 
     testImplementation(kotlin("test"))
