@@ -23,6 +23,7 @@ internal class VedtaksbrevJournalføringBehovløser(
 ) : River.PacketListener {
     companion object {
         const val BEHOV_NAVN = "JournalføringBehov"
+        private val behovIdSkipSet = emptySet<String>()
 
         private val logger = KotlinLogging.logger {}
         private val sikkerlogg = KotlinLogging.logger("tjenestekall.VedtaksbrevJournalføringBehovløser")
@@ -58,6 +59,8 @@ internal class VedtaksbrevJournalføringBehovløser(
             "behovId" to behovId,
         ) {
             logger.info { "Behandler behov for journalføring av vedtaksbrev med id $behovId" }
+
+            if (behovIdSkipSet.contains(behovId)) return
 
             runBlocking {
                 val fil = fillager.hentFil(filUrn, eier = ident)
