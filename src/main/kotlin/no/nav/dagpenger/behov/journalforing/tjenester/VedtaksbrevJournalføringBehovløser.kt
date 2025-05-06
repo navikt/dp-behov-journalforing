@@ -9,6 +9,7 @@ import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import mu.withLoggingContext
 import no.nav.dagpenger.behov.journalforing.fillager.FilURN
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
@@ -53,81 +54,87 @@ internal class VedtaksbrevJournalføringBehovløser(
         val sak = packet.sak()
         val skjemaKode = packet.skjemaKode() ?: "NAV-DAGPENGER-VEDTAK"
 
-        runBlocking {
-            val fil = fillager.hentFil(filUrn, eier = ident)
+        withLoggingContext(
+            "behovId" to behovId,
+        ) {
+            logger.info { "Behandler behov for journalføring av vedtaksbrev med id $behovId" }
 
-            runCatching {
-                val resultat =
-                    journalpostApi.opprett(
-                        forsøkFerdigstill = true,
-                        journalpost =
-                            JournalpostApiHttp.Journalpost(
-                                journalposttype = "UTGAAENDE",
-                                avsenderMottaker =
-                                    JournalpostApiHttp.Journalpost.Bruker(
-                                        id = ident,
-                                        idType = "FNR",
-                                    ),
-                                bruker =
-                                    JournalpostApiHttp.Journalpost.Bruker(
-                                        id = ident,
-                                        idType = "FNR",
-                                    ),
-                                tema = "DAG",
-                                kanal = "NAV_NO",
-                                // TODO Vi må finne ut om vi trenger NAY-enhetene
-                                journalfoerendeEnhet = "9999",
-                                tittel = tittel,
-                                eksternReferanseId = behovId,
-                                tilleggsopplysninger = emptyList(),
-                                sak = sak,
-                                dokumenter =
-                                    listOf(
-                                        JournalpostApiHttp.Dokument(
-                                            brevkode = skjemaKode,
-                                            tittel = tittel,
-                                            dokumentvarianter =
-                                                listOf(
-                                                    JournalpostApiHttp.Dokumentvariant(
-                                                        filtype = JournalpostApiHttp.Dokumentvariant.Filtype.PDFA,
-                                                        variantformat = JournalpostApiHttp.Dokumentvariant.Variant.ARKIV,
-                                                        fysiskDokument = Base64.getEncoder().encodeToString(fil),
-                                                    ),
-                                                ),
+            runBlocking {
+                val fil = fillager.hentFil(filUrn, eier = ident)
+
+                runCatching {
+                    val resultat =
+                        journalpostApi.opprett(
+                            forsøkFerdigstill = true,
+                            journalpost =
+                                JournalpostApiHttp.Journalpost(
+                                    journalposttype = "UTGAAENDE",
+                                    avsenderMottaker =
+                                        JournalpostApiHttp.Journalpost.Bruker(
+                                            id = ident,
+                                            idType = "FNR",
                                         ),
-                                    ),
-                            ),
-                    )
-
-                if (!resultat.journalpostferdigstilt) {
-                    sikkerlogg.error {
-                        "Journalposten ble ikke ferdigstilt. Resultat fra Joark: $resultat for pakke $packet"
-                    }
-                    throw JournalpostIkkeFerdigstiltException()
-                } else {
-                    packet["@løsning"] =
-                        mapOf(
-                            BEHOV_NAVN to
-                                mapOf(
-                                    "journalpostId" to resultat.journalpostId,
+                                    bruker =
+                                        JournalpostApiHttp.Journalpost.Bruker(
+                                            id = ident,
+                                            idType = "FNR",
+                                        ),
+                                    tema = "DAG",
+                                    kanal = "NAV_NO",
+                                    // TODO Vi må finne ut om vi trenger NAY-enhetene
+                                    journalfoerendeEnhet = "9999",
+                                    tittel = tittel,
+                                    eksternReferanseId = behovId,
+                                    tilleggsopplysninger = emptyList(),
+                                    sak = sak,
+                                    dokumenter =
+                                        listOf(
+                                            JournalpostApiHttp.Dokument(
+                                                brevkode = skjemaKode,
+                                                tittel = tittel,
+                                                dokumentvarianter =
+                                                    listOf(
+                                                        JournalpostApiHttp.Dokumentvariant(
+                                                            filtype = JournalpostApiHttp.Dokumentvariant.Filtype.PDFA,
+                                                            variantformat = JournalpostApiHttp.Dokumentvariant.Variant.ARKIV,
+                                                            fysiskDokument = Base64.getEncoder().encodeToString(fil),
+                                                        ),
+                                                    ),
+                                            ),
+                                        ),
                                 ),
                         )
 
-                    val message = packet.toJson()
-                    context.publish(message)
-                    sikkerlogg.info {
-                        "Sendt ut løsning $message"
-                    }
-                }
-            }.onFailure {
-                logger.error(it) {
-                    "Feil ved journalføring av dokument: ${it.message}"
-                }
+                    if (!resultat.journalpostferdigstilt) {
+                        sikkerlogg.error {
+                            "Journalposten ble ikke ferdigstilt. Resultat fra Joark: $resultat for pakke $packet"
+                        }
+                        throw JournalpostIkkeFerdigstiltException()
+                    } else {
+                        packet["@løsning"] =
+                            mapOf(
+                                BEHOV_NAVN to
+                                    mapOf(
+                                        "journalpostId" to resultat.journalpostId,
+                                    ),
+                            )
 
-                sikkerlogg.error(it) {
-                    "Feil ved journalføring av dokument: ${it.message} for pakke: ${packet.toJson()}"
+                        val message = packet.toJson()
+                        context.publish(message)
+                        sikkerlogg.info {
+                            "Sendt ut løsning $message"
+                        }
+                    }
+                }.onFailure {
+                    logger.error(it) {
+                        "Feil ved journalføring av dokument: ${it.message}"
+                    }
+
+                    sikkerlogg.error(it) {
+                        "Feil ved journalføring av dokument: ${it.message} for pakke: ${packet.toJson()}"
+                    }
+                    throw it
                 }
-                throw it
             }
         }
     }
