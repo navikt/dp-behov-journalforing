@@ -6,7 +6,7 @@ metadata:
   labels:
     team: teamdagpenger
 spec:
-  image: {{ image }}
+  image: "{{ image }}"
   port: 8080
   prometheus:
     enabled: true
@@ -28,11 +28,11 @@ spec:
     - name: JDK_JAVA_OPTIONS
       value: -XX:+UseParallelGC -XX:InitiatingHeapOccupancyPercent=25 -XX:MaxRAMPercentage=25.0 -XX:ActiveProcessorCount=4
     - name: DOKARKIV_INGRESS
-      value: {{ dokarkiv.ingress }}
+      value: "{{ dokarkiv.ingress }}"
   secureLogs:
     enabled: true
   kafka:
-    pool: {{ kafka.pool }}
+    pool: "{{ kafka.pool }}"
   azure:
     application:
       enabled: true
@@ -42,5 +42,5 @@ spec:
         - application: dp-mellomlagring
         - application: dp-soknad
       external:
-        - host: {{ dokarkiv.ingress }}
+        - host: "{{ dokarkiv.ingress }}"
 
