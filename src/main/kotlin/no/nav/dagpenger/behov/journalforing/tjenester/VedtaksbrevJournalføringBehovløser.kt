@@ -129,18 +129,6 @@ internal class VedtaksbrevJournalføringBehovløser(
                         }
                     }
                 }.onFailure {
-                    context.publish(
-                        JsonMessage
-                            .newMessage(
-                                "journalføring_feilet",
-                                mapOf(
-                                    "ident" to ident,
-                                    "message" to it.message.toString(),
-                                    "behovId" to behovId,
-                                ),
-                            ).toJson(),
-                    )
-
                     logger.error(it) {
                         "Feil ved journalføring av dokument: ${it.message}"
                     }
