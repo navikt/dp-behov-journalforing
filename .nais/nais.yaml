@@ -44,3 +44,11 @@ spec:
       external:
         - host: "{{ dokarkiv.ingress }}"
 
+  observability:
+    logging:
+      destinations:
+        - id: loki
+        - id: elastic
+    autoInstrumentation:
+      enabled: true
+      runtime: java
