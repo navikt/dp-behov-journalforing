@@ -33,7 +33,7 @@ dependencies {
     implementation(libs.bundles.ktor.client)
     implementation("io.ktor:ktor-serialization-jackson:${libs.versions.ktor.get()}")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.10.2")
-    implementation("de.slub-dresden:urnlib:2.0.1")
+    implementation("de.slub-dresden:urnlib:3.0.0")
 
     testImplementation(kotlin("test"))
     testImplementation(libs.mockk)
