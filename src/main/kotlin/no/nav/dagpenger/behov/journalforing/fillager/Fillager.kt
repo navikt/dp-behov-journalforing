@@ -9,15 +9,18 @@ interface Fillager {
     ): ByteArray
 }
 
-class FilURN(urn: String) {
+class FilURN(
+    urn: String,
+) {
     private lateinit var id: URN
 
     init {
-        kotlin.runCatching {
-            id = URN.rfc8141().parse(urn)
-        }.onFailure {
-            throw IllegalArgumentException(it)
-        }
+        kotlin
+            .runCatching {
+                id = URN.rfc8141().parse(urn)
+            }.onFailure {
+                throw IllegalArgumentException(it)
+            }
     }
 
     val fil = id.namespaceSpecificString().toString()
@@ -29,7 +32,5 @@ class FilURN(urn: String) {
         return this.fil == other.fil
     }
 
-    override fun hashCode(): Int {
-        return this.fil.hashCode()
-    }
+    override fun hashCode() = this.fil.hashCode()
 }

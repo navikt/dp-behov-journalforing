@@ -18,11 +18,11 @@ class FillagerHttp(
     override suspend fun hentFil(
         urn: FilURN,
         eier: String,
-    ): ByteArray {
-        return client.get("http://dp-mellomlagring/v1/azuread/mellomlagring/vedlegg/${urn.fil}") {
-            header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
-            header("X-Eier", eier)
-            header(HttpHeaders.XCorrelationId, MDC.get("behovId"))
-        }.body()
-    }
+    ): ByteArray =
+        client
+            .get("http://dp-mellomlagring/v1/azuread/mellomlagring/vedlegg/${urn.fil}") {
+                header(HttpHeaders.Authorization, "Bearer ${tokenProvider.invoke()}")
+                header("X-Eier", eier)
+                header(HttpHeaders.XCorrelationId, MDC.get("behovId"))
+            }.body()
 }

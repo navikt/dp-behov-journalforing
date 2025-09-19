@@ -1,5 +1,7 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
@@ -17,16 +19,17 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
 import java.util.Base64
 
-internal class MinidialogJournalføringBehovLøser(
+internal class MeldekortJournalføringBehovLøser(
     rapidsConnection: RapidsConnection,
     private val journalpostApi: JournalpostApi,
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
-        private val sikkerlogg = KotlinLogging.logger("tjenestekall.MinidialogJournalføringBehovLøser")
-        internal const val BEHOV = "JournalføreMinidialog"
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall.MeldekortJournalføringBehovLøser")
+        internal const val BEHOV = "JournalføreMeldekort"
     }
 
     init {
@@ -37,14 +40,16 @@ internal class MinidialogJournalføringBehovLøser(
                     it.requireAll("@behov", listOf(BEHOV))
                     it.forbid("@løsning")
                 }
-                validate { it.requireKey("@behovId", "ident", "søknad_uuid") }
+                validate { it.requireKey("@behovId", "ident") }
                 validate {
                     it.require(BEHOV) { behov ->
-                        behov.required("skjemakode")
-                        behov.required("dialog_uuid")
+                        behov.required("meldekortId")
+                        behov.required("sakId")
+                        behov.required("brevkode")
                         behov.required("tittel")
                         behov.required("json")
                         behov.required("pdf")
+                        behov.required("tilleggsopplysninger")
                     }
                 }
             }.register(this)
@@ -56,23 +61,28 @@ internal class MinidialogJournalføringBehovLøser(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val søknadId = packet["søknad_uuid"].asText()
-        val dialogId = packet[BEHOV]["dialog_uuid"].asText()
         val ident = packet["ident"].asText()
+        val meldekortId = packet[BEHOV]["meldekortId"].asText()
+        val sakId = packet[BEHOV]["sakId"].asText()
         val behovId = packet["@behovId"].asText()
 
         withLoggingContext(
-            "søknadId" to søknadId,
-            "dialogId" to dialogId,
+            "meldekortId" to meldekortId,
             "behovId" to behovId,
         ) {
             try {
-                logg.info { "Mottok behov for ny journalpost for dialog med id $dialogId for søknad med id $søknadId" }
+                logg.info { "Mottok behov for ny journalpost for meldekort med id $meldekortId" }
                 runBlocking(MDCContext()) {
-                    val brevkode = packet[BEHOV]["skjemakode"].asText()
+                    val brevkode = packet[BEHOV]["brevkode"].asText()
                     val tittel = packet[BEHOV]["tittel"].asText()
                     val json = packet[BEHOV]["json"].asText()
                     val pdf = packet[BEHOV]["pdf"].asText()
+
+                    val tilleggsopplysninger: List<Pair<String, String>> =
+                        jacksonObjectMapper().convertValue(
+                            packet[BEHOV]["tilleggsopplysninger"],
+                            object : TypeReference<List<Pair<String, String>>>() {},
+                        )
 
                     val dokumenter: List<Dokument> =
                         listOf(
@@ -92,8 +102,15 @@ internal class MinidialogJournalføringBehovLøser(
                             ident = ident,
                             dokumenter = dokumenter,
                             eksternReferanseId = behovId,
+                            tilleggsopplysninger = tilleggsopplysninger,
                             forsøkFerdigstill = true,
                             tittel = tittel,
+                            sak =
+                                JournalpostApiHttp.Sak(
+                                    sakstype = "FAGSAK",
+                                    fagsakId = sakId,
+                                    fagsakSystem = "DAGPENGER",
+                                ),
                         )
                     packet["@løsning"] =
                         mapOf(
@@ -106,11 +123,8 @@ internal class MinidialogJournalføringBehovLøser(
                 if (e.response.status == HttpStatusCode.InternalServerError) {
                     sikkerlogg.warn(e) { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly." }
                 }
-                if (behovId in listOf("behovid")) {
-                    logg.error { "Skipper feil for behovId $behovId" }
-                } else {
-                    throw e
-                }
+
+                throw e
             }
         }
     }
