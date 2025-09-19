@@ -84,7 +84,7 @@ internal class JournalforingBehovLøser(
                     listOf(hovedDokument) + packet[NY_JOURNAL_POST]["dokumenter"].map { it.toDokument(ident) }
 
                 sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
-                sikkerlogg.info { "Oppretter journalost basert på ${packet.toJson()}" }
+                sikkerlogg.info { "Oppretter journalpost basert på ${packet.toJson()}" }
                 try {
                     journalpostApi
                         .opprett(

@@ -22,14 +22,14 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.F
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
 import java.util.Base64
 
-internal class RapporteringJournalføringBehovLøser(
+internal class MeldekortJournalføringBehovLøser(
     rapidsConnection: RapidsConnection,
     private val journalpostApi: JournalpostApi,
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
-        private val sikkerlogg = KotlinLogging.logger("tjenestekall.RapporteringJournalføringBehovLøser")
-        internal const val BEHOV = "JournalføreRapportering"
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall.MeldekortJournalføringBehovLøser")
+        internal const val BEHOV = "JournalføreMeldekort"
     }
 
     init {
@@ -43,7 +43,8 @@ internal class RapporteringJournalføringBehovLøser(
                 validate { it.requireKey("@behovId", "ident") }
                 validate {
                     it.require(BEHOV) { behov ->
-                        behov.required("periodeId")
+                        behov.required("meldekortId")
+                        behov.required("sakId")
                         behov.required("brevkode")
                         behov.required("tittel")
                         behov.required("json")
@@ -61,19 +62,16 @@ internal class RapporteringJournalføringBehovLøser(
         meterRegistry: MeterRegistry,
     ) {
         val ident = packet["ident"].asText()
-        val periodeId = packet[BEHOV]["periodeId"].asText()
+        val meldekortId = packet[BEHOV]["meldekortId"].asText()
+        val sakId = packet[BEHOV]["sakId"].asText()
         val behovId = packet["@behovId"].asText()
-        if (behovId == "739e4bfd-7bda-4b58-88c7-b64cd9896def") {
-            logg.warn { "Skipper journalforing av periode med id $periodeId " }
-            return
-        }
 
         withLoggingContext(
-            "periodeId" to periodeId,
+            "meldekortId" to meldekortId,
             "behovId" to behovId,
         ) {
             try {
-                logg.info { "Mottok behov for ny journalpost for periode med id $periodeId" }
+                logg.info { "Mottok behov for ny journalpost for meldekort med id $meldekortId" }
                 runBlocking(MDCContext()) {
                     val brevkode = packet[BEHOV]["brevkode"].asText()
                     val tittel = packet[BEHOV]["tittel"].asText()
@@ -109,7 +107,9 @@ internal class RapporteringJournalføringBehovLøser(
                             tittel = tittel,
                             sak =
                                 JournalpostApiHttp.Sak(
-                                    sakstype = "GENERELL_SAK",
+                                    sakstype = "FAGSAK",
+                                    fagsakId = sakId,
+                                    fagsakSystem = "DAGPENGER",
                                 ),
                         )
                     packet["@løsning"] =
@@ -123,11 +123,8 @@ internal class RapporteringJournalføringBehovLøser(
                 if (e.response.status == HttpStatusCode.InternalServerError) {
                     sikkerlogg.warn(e) { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly." }
                 }
-                if (behovId in listOf("behovid")) {
-                    logg.error { "Skipper feil for behovId $behovId" }
-                } else {
-                    throw e
-                }
+
+                throw e
             }
         }
     }
