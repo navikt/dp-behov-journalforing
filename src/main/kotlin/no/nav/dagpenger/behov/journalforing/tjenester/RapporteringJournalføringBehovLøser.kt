@@ -73,7 +73,7 @@ internal class RapporteringJournalføringBehovLøser(
             "behovId" to behovId,
         ) {
             try {
-                logg.info("Mottok behov for ny journalpost for periode med id $periodeId")
+                logg.info { "Mottok behov for ny journalpost for periode med id $periodeId" }
                 runBlocking(MDCContext()) {
                     val brevkode = packet[BEHOV]["brevkode"].asText()
                     val tittel = packet[BEHOV]["tittel"].asText()

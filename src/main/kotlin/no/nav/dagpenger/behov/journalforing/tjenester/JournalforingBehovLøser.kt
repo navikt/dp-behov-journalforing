@@ -63,11 +63,11 @@ internal class JournalforingBehovLøser(
             "søknadId" to søknadId,
             "behovId" to behovId,
         ) {
-            logg.info(
+            logg.info {
                 "Mottok behov for ny journalpost med uuid=$søknadId, pakkestørrelse=${
                     prettyPrintFileSize(packet.toJson().length.toLong())
-                }",
-            )
+                }"
+            }
             if (behovIdSkipSet.contains(behovId)) return
             runBlocking(MDCContext()) {
                 val hovedDokument =

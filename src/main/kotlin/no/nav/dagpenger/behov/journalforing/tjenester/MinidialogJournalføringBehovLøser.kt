@@ -67,7 +67,7 @@ internal class MinidialogJournalføringBehovLøser(
             "behovId" to behovId,
         ) {
             try {
-                logg.info("Mottok behov for ny journalpost for dialog med id $dialogId for søknad med id $søknadId")
+                logg.info { "Mottok behov for ny journalpost for dialog med id $dialogId for søknad med id $søknadId" }
                 runBlocking(MDCContext()) {
                     val brevkode = packet[BEHOV]["skjemakode"].asText()
                     val tittel = packet[BEHOV]["tittel"].asText()
