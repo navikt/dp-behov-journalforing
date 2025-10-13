@@ -1,0 +1,172 @@
+package no.nav.dagpenger.behov.journalforing.tjenester
+
+import com.fasterxml.jackson.databind.JsonNode
+import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
+import com.github.navikt.tbd_libs.rapids_and_rivers.River
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageMetadata
+import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
+import io.github.oshai.kotlinlogging.KotlinLogging
+import io.github.oshai.kotlinlogging.withLoggingContext
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.http.HttpStatusCode
+import io.micrometer.core.instrument.MeterRegistry
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.slf4j.MDCContext
+import no.nav.dagpenger.behov.journalforing.fillager.FilURN
+import no.nav.dagpenger.behov.journalforing.fillager.Fillager
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype
+import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
+import java.time.LocalDateTime.now
+import kotlin.math.log10
+import kotlin.math.pow
+
+@Suppress("DuplicatedCode")
+internal class JournalførSøknadPdfOgVedleggBehovLøser(
+    rapidsConnection: RapidsConnection,
+    private val fillager: Fillager,
+    private val journalpostApi: JournalpostApi,
+) : River.PacketListener {
+    internal companion object {
+        private val logg = KotlinLogging.logger {}
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall.${this::class.java.simpleName}")
+        private val behovIdSkipSet = emptySet<String>()
+        const val BEHOV = "journalfør_søknad_pdf_og_vedlegg"
+    }
+
+    init {
+        River(rapidsConnection)
+            .apply {
+                precondition {
+                    it.requireAll("@behov", listOf(BEHOV))
+                    it.forbid("@løsning")
+                }
+                validate { it.requireKey("@behovId", "søknadId", "ident", "type", BEHOV) }
+            }.register(this)
+    }
+
+    override fun onPacket(
+        packet: JsonMessage,
+        context: MessageContext,
+        metadata: MessageMetadata,
+        meterRegistry: MeterRegistry,
+    ) {
+        val søknadId = packet["søknadId"].asText()
+        val ident = packet["ident"].asText()
+        val behovId = packet["@behovId"].asText()
+        val innsendingType = InnsendingType.valueOf(packet["type"].asText())
+
+        withLoggingContext(
+            "søknadId" to søknadId,
+            "behovId" to behovId,
+        ) {
+            logg.info {
+                "Mottok behov for ny journalpost med uuid=$søknadId, pakkestørrelse=${
+                    prettyPrintFileSize(packet.toJson().length.toLong())
+                }"
+            }
+            if (behovIdSkipSet.contains(behovId)) return
+            runBlocking(MDCContext()) {
+                val hovedDokument =
+                    packet[BEHOV]["hovedDokument"].let { jsonNode ->
+                        val brevkode =
+                            when (jsonNode.skjemakode()) {
+                                "GENERELL_INNSENDING" -> jsonNode.skjemakode()
+                                else -> innsendingType.brevkode(jsonNode.skjemakode())
+                            }
+                        val dokument = jsonNode.toDokument(ident, brevkode)
+                        dokument.copy(varianter = dokument.varianter)
+                    }
+                val dokumenter: List<Dokument> =
+                    listOf(hovedDokument) + packet[BEHOV]["dokumenter"].map { it.toDokument(ident) }
+
+                sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
+                sikkerlogg.info { "Oppretter journalpost basert på ${packet.toJson()}" }
+                try {
+                    journalpostApi
+                        .opprett(
+                            ident = ident,
+                            dokumenter = dokumenter,
+                            eksternReferanseId = behovId,
+                            forsøkFerdigstill = true,
+                        ).let { resultat ->
+                            packet["@løsning"] =
+                                mapOf(
+                                    BEHOV to
+                                        mapOf(
+                                            "journalpostId" to resultat.journalpostId,
+                                            "journalførtTidspunkt" to now(),
+                                        ),
+                                )
+                            val message = packet.toJson()
+                            context.publish(message)
+                            sikkerlogg.info { "Sendt ut løsning $message" }
+                        }
+                } catch (e: ClientRequestException) {
+                    when (e.response.status) {
+                        HttpStatusCode.InternalServerError, HttpStatusCode.NotFound -> {
+                            sikkerlogg.warn(e) {
+                                "Feilet for '$ident'. Hvis dette er i dev, forsøk å importere identen på nytt i Dolly."
+                            }
+                            context.publish(
+                                JsonMessage
+                                    .newMessage(
+                                        "journalfør_søknad_pdf_og_vedlegg_feilet",
+                                        mapOf(
+                                            "behovId" to behovId,
+                                            "søknadId" to søknadId,
+                                            "type" to innsendingType,
+                                        ),
+                                    ).toJson(),
+                            )
+                        }
+
+                        else -> sikkerlogg.error(e) { "Opprettelse av journalpost med $dokumenter for søknad $søknadId feilet" }
+                    }
+                    throw e
+                }
+            }
+        }
+    }
+
+    private enum class InnsendingType {
+        NY_DIALOG,
+        ETTERSENDING_TIL_DIALOG, ;
+
+        fun brevkode(skjemakode: String) =
+            when (this) {
+                NY_DIALOG -> "NAV $skjemakode"
+                ETTERSENDING_TIL_DIALOG -> "NAVe $skjemakode"
+            }
+    }
+
+    private suspend fun JsonNode.toDokument(
+        ident: String,
+        brevkode: String = this.skjemakode(),
+    ) = Dokument(
+        brevkode = brevkode,
+        tittel = DokumentTittelOppslag.hentTittel(brevkode),
+        varianter =
+            this["varianter"].map { variant ->
+                val fysiskDokument: ByteArray = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
+                Variant(
+                    filtype = Filtype.valueOf(variant["type"].asText()),
+                    format = Format.valueOf(variant["variant"].asText()),
+                    fysiskDokument = fysiskDokument,
+                )
+            },
+    )
+
+    private fun JsonNode.skjemakode(): String = this["skjemakode"].asText()
+
+    private fun prettyPrintFileSize(size: Long): String {
+        if (size <= 0) return "0 B"
+
+        val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+        val digitGroups = (log10(size.toDouble()) / log10(1024.0)).toInt()
+        return String.format("%.1f %s", size / 1024.0.pow(digitGroups.toDouble()), units[digitGroups])
+    }
+}
