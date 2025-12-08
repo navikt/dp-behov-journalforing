@@ -12,6 +12,7 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.utils.io.core.toByteArray
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -40,7 +41,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøserTest {
     fun `JournalførSøknadPdfOgVedleggBehovLøser løser behov som forventet`() {
         val sendteDokumenter = slot<List<JournalpostApi.Dokument>>()
         coEvery {
-            journalpostApi.opprett(any(), capture(sendteDokumenter), any(), any(), eq(true))
+            journalpostApi.opprett(any(), capture(sendteDokumenter), any(), any(), any())
         } returns Resultat("730212311", false, emptyList(), "Journalpost ferdigstilt")
 
         testRapid.sendTestMessage(melding)
@@ -66,6 +67,16 @@ internal class JournalførSøknadPdfOgVedleggBehovLøserTest {
             field(0, "@løsning")[BEHOV]["journalpostId"].asText() shouldBe "730212311"
             field(0, "@løsning")[BEHOV]["journalførtTidspunkt"].asText() shouldNotBe null
         }
+        coVerify {
+            journalpostApi.opprett(
+                "12345678913",
+                any(),
+                "34f6743c-bd9a-4902-ae68-fae0171b1e68",
+                any(),
+                false,
+                any(),
+            )
+        }
     }
 
     @Test
@@ -80,7 +91,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøserTest {
     fun `JournalførSøknadPdfOgVedleggBehovLøser publiserer feilmelding og kaster exception hvis kall til journalpostApi feiler med HTTP 500`() {
         val httpResponse = mockk<HttpResponse>(relaxed = true)
         every { httpResponse.status } returns InternalServerError
-        coEvery { journalpostApi.opprett(any(), any(), any(), any(), eq(true)) } throws
+        coEvery { journalpostApi.opprett(any(), any(), any(), any(), any()) } throws
             ClientRequestException(httpResponse, "Feil, feil, og atter feil!")
 
         val exception = shouldThrow<ClientRequestException> { testRapid.sendTestMessage(melding) }
@@ -100,7 +111,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøserTest {
     fun `JournalførSøknadPdfOgVedleggBehovLøser publiserer feilmelding og kaster exception hvis kall til journalpostApi feiler med HTTP 404`() {
         val httpResponse = mockk<HttpResponse>(relaxed = true)
         every { httpResponse.status } returns NotFound
-        coEvery { journalpostApi.opprett(any(), any(), any(), any(), eq(true)) } throws
+        coEvery { journalpostApi.opprett(any(), any(), any(), any(), any()) } throws
             ClientRequestException(httpResponse, "Feil, feil, og atter feil!")
 
         val exception = shouldThrow<ClientRequestException> { testRapid.sendTestMessage(melding) }
@@ -120,7 +131,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøserTest {
     fun `JournalførSøknadPdfOgVedleggBehovLøser publiserer ikke feilmelding, men kaster exception hvis kall til journalpostApi feiler med noe annet enn HTTP 404 eller 500`() {
         val httpResponse = mockk<HttpResponse>(relaxed = true)
         every { httpResponse.status } returns BadRequest
-        coEvery { journalpostApi.opprett(any(), any(), any(), any(), eq(true)) } throws
+        coEvery { journalpostApi.opprett(any(), any(), any(), any(), any()) } throws
             ClientRequestException(httpResponse, "Feil, feil, og atter feil!")
 
         val exception = shouldThrow<ClientRequestException> { testRapid.sendTestMessage(melding) }

@@ -91,7 +91,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
                             ident = ident,
                             dokumenter = dokumenter,
                             eksternReferanseId = behovId,
-                            forsøkFerdigstill = true,
+                            forsøkFerdigstill = false,
                         ).let { resultat ->
                             packet["@løsning"] =
                                 mapOf(
@@ -124,7 +124,9 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
                             )
                         }
 
-                        else -> sikkerlogg.error(e) { "Opprettelse av journalpost med $dokumenter for søknad $søknadId feilet" }
+                        else -> {
+                            sikkerlogg.error(e) { "Opprettelse av journalpost med $dokumenter for søknad $søknadId feilet" }
+                        }
                     }
                     throw e
                 }
