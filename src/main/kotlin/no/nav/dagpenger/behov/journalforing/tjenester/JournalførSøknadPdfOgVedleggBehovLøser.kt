@@ -91,7 +91,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
                             ident = ident,
                             dokumenter = dokumenter,
                             eksternReferanseId = behovId,
-                            forsøkFerdigstill = false,
+                            forsøkFerdigstill = true,
                         ).let { resultat ->
                             packet["@løsning"] =
                                 mapOf(
