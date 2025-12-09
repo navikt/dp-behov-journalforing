@@ -73,7 +73,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøserTest {
                 any(),
                 "34f6743c-bd9a-4902-ae68-fae0171b1e68",
                 any(),
-                false,
+                true,
                 any(),
             )
         }
