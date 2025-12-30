@@ -32,7 +32,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
-        private val sikkerlogg = KotlinLogging.logger("tjenestekall.${this::class.java.simpleName}")
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall")
         private val behovIdSkipSet = emptySet<String>()
         const val BEHOV = "journalfør_søknad_pdf_og_vedlegg"
     }
