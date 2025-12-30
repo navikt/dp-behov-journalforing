@@ -29,8 +29,6 @@ spec:
       value: -XX:+UseParallelGC -XX:InitiatingHeapOccupancyPercent=25 -XX:MaxRAMPercentage=25.0 -XX:ActiveProcessorCount=4
     - name: DOKARKIV_INGRESS
       value: "{{ dokarkiv.ingress }}"
-  secureLogs:
-    enabled: true
   kafka:
     pool: "{{ kafka.pool }}"
   azure:
@@ -39,6 +37,8 @@ spec:
   accessPolicy:
     outbound:
       rules:
+        - application: logging
+          namespace: nais-system
         - application: dp-mellomlagring
         - application: dp-soknad
       external:

@@ -26,7 +26,7 @@ internal class VedtaksbrevJournalføringBehovløser(
         private val behovIdSkipSet = setOf("fb4a8b58-3984-431a-811b-ab35b50c0e12")
 
         private val logger = KotlinLogging.logger {}
-        private val sikkerlogg = KotlinLogging.logger("tjenestekall.VedtaksbrevJournalføringBehovløser")
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall")
         val rapidFilter: River.() -> Unit = {
             precondition {
                 it.requireValue("@event_name", "behov")

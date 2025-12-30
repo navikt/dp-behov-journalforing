@@ -28,7 +28,7 @@ internal class MeldekortJournalføringBehovLøser(
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
-        private val sikkerlogg = KotlinLogging.logger("tjenestekall.MeldekortJournalføringBehovLøser")
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall")
         internal const val BEHOV = "JournalføreMeldekort"
     }
 

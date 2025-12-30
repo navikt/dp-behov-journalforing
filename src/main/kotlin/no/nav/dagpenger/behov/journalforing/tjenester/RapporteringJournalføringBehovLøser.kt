@@ -28,7 +28,7 @@ internal class RapporteringJournalføringBehovLøser(
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
-        private val sikkerlogg = KotlinLogging.logger("tjenestekall.RapporteringJournalføringBehovLøser")
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall")
         internal const val BEHOV = "JournalføreRapportering"
     }
 
