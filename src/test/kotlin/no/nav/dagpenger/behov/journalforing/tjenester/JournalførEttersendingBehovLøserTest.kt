@@ -13,12 +13,12 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import org.junit.jupiter.api.Test
 import no.nav.dagpenger.behov.journalforing.fillager.Fillager
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Resultat
 import no.nav.dagpenger.behov.journalforing.tjenester.JournalførEttersendingBehovLøser.Companion.BEHOV
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.Test
 
 class JournalførEttersendingBehovLøserTest {
     private val fillager =
@@ -29,9 +29,7 @@ class JournalførEttersendingBehovLøserTest {
         }
     private val journalpostApi = mockk<JournalpostApi>()
     private val testRapid =
-        TestRapid().also {
-            JournalførEttersendingBehovLøser(it, fillager, journalpostApi)
-        }
+        TestRapid().also { JournalførEttersendingBehovLøser(it, fillager, journalpostApi) }
 
     private val seksjonData = "dokumentasjon" as String
     private val seksjonId = "verneplikt" as String
@@ -79,7 +77,7 @@ class JournalførEttersendingBehovLøserTest {
         val httpResponse = mockk<HttpResponse>(relaxed = true)
         every { httpResponse.status } returns InternalServerError
         coEvery { journalpostApi.opprett(any(), any(), any(), any(), eq(true)) } throws
-                ClientRequestException(httpResponse, "Feil, feil, og atter feil!")
+            ClientRequestException(httpResponse, "Feil, feil, og atter feil!")
 
         val exception = shouldThrow<ClientRequestException> { testRapid.sendTestMessage(melding) }
 

@@ -11,9 +11,6 @@ import io.github.oshai.kotlinlogging.withLoggingContext
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode
 import io.micrometer.core.instrument.MeterRegistry
-import java.time.LocalDateTime.now
-import kotlin.math.log10
-import kotlin.math.pow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
 import no.nav.dagpenger.behov.journalforing.fillager.FilURN
@@ -23,6 +20,9 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
+import java.time.LocalDateTime.now
+import kotlin.math.log10
+import kotlin.math.pow
 
 @Suppress("DuplicatedCode")
 internal class JournalførEttersendingBehovLøser(
@@ -46,7 +46,10 @@ internal class JournalførEttersendingBehovLøser(
                 }
                 validate {
                     it.requireKey(
-                        "@behovId", "søknadId", "ident", "type",
+                        "@behovId",
+                        "søknadId",
+                        "ident",
+                        "type",
                         BEHOV,
                     )
                 }
@@ -90,12 +93,13 @@ internal class JournalførEttersendingBehovLøser(
                         ).let { resultat ->
                             packet["@løsning"] =
                                 mapOf(
-                                    BEHOV to mapOf(
-                                        "journalpostId" to resultat.journalpostId,
-                                        "journalførtTidspunkt" to now(),
-                                        "dokumentasjonskravJson" to packet[BEHOV]["dokumentasjonskravJson"],
-                                        "seksjonId" to packet[BEHOV]["seksjonId"].asText(),
-                                    ),
+                                    BEHOV to
+                                        mapOf(
+                                            "journalpostId" to resultat.journalpostId,
+                                            "journalførtTidspunkt" to now(),
+                                            "dokumentasjonskravJson" to packet[BEHOV]["dokumentasjonskravJson"],
+                                            "seksjonId" to packet[BEHOV]["seksjonId"].asText(),
+                                        ),
                                 )
                             val message = packet.toJson()
                             context.publish(message)
@@ -120,14 +124,15 @@ internal class JournalførEttersendingBehovLøser(
                             )
                         }
 
-                        else -> sikkerlogg.error(e) { "Opprettelse av journalpost med $dokumenter for søknad $søknadId feilet" }
+                        else -> {
+                            sikkerlogg.error(e) { "Opprettelse av journalpost med $dokumenter for søknad $søknadId feilet" }
+                        }
                     }
                     throw e
                 }
             }
         }
     }
-
 
     private enum class InnsendingType {
         NY_DIALOG,

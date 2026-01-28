@@ -126,7 +126,9 @@ internal class JournalforingBehovLøser(
                             )
                         }
 
-                        else -> sikkerlogg.error(e) { "Opprettelse av  journalpost med $dokumenter feilet" }
+                        else -> {
+                            sikkerlogg.error(e) { "Opprettelse av  journalpost med $dokumenter feilet" }
+                        }
                     }
                     throw e
                 }
