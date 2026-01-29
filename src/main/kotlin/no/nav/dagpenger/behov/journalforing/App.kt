@@ -9,6 +9,7 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
 import no.nav.dagpenger.behov.journalforing.soknad.SoknadHttp
 import no.nav.dagpenger.behov.journalforing.tjenester.JournalforingBehovLøser
 import no.nav.dagpenger.behov.journalforing.tjenester.JournalførSøknadPdfOgVedleggBehovLøser
+import no.nav.dagpenger.behov.journalforing.tjenester.MeldekortJournalføringBehovLøser
 import no.nav.dagpenger.behov.journalforing.tjenester.MinidialogJournalføringBehovLøser
 import no.nav.dagpenger.behov.journalforing.tjenester.RapporteringJournalføringBehovLøser
 import no.nav.dagpenger.behov.journalforing.tjenester.VedtaksbrevJournalføringBehovløser
@@ -40,6 +41,10 @@ internal object App : RapidsConnection.StatusListener {
                 journalpostApi = journalpostApi,
             )
             RapporteringJournalføringBehovLøser(
+                rapidsConnection = it,
+                journalpostApi = journalpostApi,
+            )
+            MeldekortJournalføringBehovLøser(
                 rapidsConnection = it,
                 journalpostApi = journalpostApi,
             )
