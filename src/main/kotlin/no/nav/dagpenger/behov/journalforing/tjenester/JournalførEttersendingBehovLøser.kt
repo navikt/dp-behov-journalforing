@@ -20,37 +20,39 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Dokument
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
-import no.nav.dagpenger.behov.journalforing.soknad.SoknadHttp
+import java.time.LocalDateTime.now
 import kotlin.math.log10
 import kotlin.math.pow
 
-internal class JournalforingBehovLøser(
+@Suppress("DuplicatedCode")
+internal class JournalførEttersendingBehovLøser(
     rapidsConnection: RapidsConnection,
     private val fillager: Fillager,
     private val journalpostApi: JournalpostApi,
-    private val faktahenter: SoknadHttp,
 ) : River.PacketListener {
     internal companion object {
         private val logg = KotlinLogging.logger {}
-        private val sikkerlogg = KotlinLogging.logger("tjenestekall")
-        private val behovIdSkipSet =
-            setOf(
-                "4224fdbc-6856-4666-8504-0b416cd31827",
-                "6ba86341-1a64-4584-a831-0c795ef28004",
-                "1d34c4d6-de84-4b78-aa47-f29b603e2a34",
-                "fe7e8cac-5691-4e1a-9e74-c67123b77799",
-            )
-        internal const val NY_JOURNAL_POST = "NyJournalpost"
+        private val sikkerlogg = KotlinLogging.logger("tjenestekall.${this::class.java.simpleName}")
+        private val behovIdSkipSet = emptySet<String>()
+        const val BEHOV = "journalfør_ettersending_av_dokumentasjon"
     }
 
     init {
         River(rapidsConnection)
             .apply {
                 precondition {
-                    it.requireAll("@behov", listOf(NY_JOURNAL_POST))
+                    it.requireAll("@behov", listOf(BEHOV))
                     it.forbid("@løsning")
                 }
-                validate { it.requireKey("@behovId", "søknad_uuid", "ident", "type", NY_JOURNAL_POST) }
+                validate {
+                    it.requireKey(
+                        "@behovId",
+                        "søknadId",
+                        "ident",
+                        "type",
+                        BEHOV,
+                    )
+                }
             }.register(this)
     }
 
@@ -60,7 +62,7 @@ internal class JournalforingBehovLøser(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val søknadId = packet["søknad_uuid"].asText()
+        val søknadId = packet["søknadId"].asText()
         val ident = packet["ident"].asText()
         val behovId = packet["@behovId"].asText()
         val innsendingType = InnsendingType.valueOf(packet["type"].asText())
@@ -70,27 +72,17 @@ internal class JournalforingBehovLøser(
             "behovId" to behovId,
         ) {
             logg.info {
-                "Mottok behov for ny journalpost med uuid=$søknadId, pakkestørrelse=${
+                "Mottok behov for ny journalpost for ettersending med uuid=$søknadId, pakkestørrelse=${
                     prettyPrintFileSize(packet.toJson().length.toLong())
                 }"
             }
             if (behovIdSkipSet.contains(behovId)) return
             runBlocking(MDCContext()) {
-                val hovedDokument =
-                    packet[NY_JOURNAL_POST]["hovedDokument"].let { jsonNode ->
-                        val brevkode =
-                            when (jsonNode.skjemakode()) {
-                                "GENERELL_INNSENDING" -> jsonNode.skjemakode()
-                                else -> innsendingType.brevkode(jsonNode.skjemakode())
-                            }
-                        val dokument = jsonNode.toDokument(ident, brevkode)
-                        dokument.copy(varianter = dokument.varianter + faktahenter.hentJsonSøknad(søknadId))
-                    }
                 val dokumenter: List<Dokument> =
-                    listOf(hovedDokument) + packet[NY_JOURNAL_POST]["dokumenter"].map { it.toDokument(ident) }
+                    packet[BEHOV]["dokumenter"].map { it.toDokument(ident) }
 
-                sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
-                sikkerlogg.info { "Oppretter journalpost basert på ${packet.toJson()}" }
+                sikkerlogg.info { "Oppretter journalpost for ettersending med $dokumenter" }
+                sikkerlogg.info { "Oppretter journalpost for ettersending basert på ${packet.toJson()}" }
                 try {
                     journalpostApi
                         .opprett(
@@ -101,7 +93,13 @@ internal class JournalforingBehovLøser(
                         ).let { resultat ->
                             packet["@løsning"] =
                                 mapOf(
-                                    NY_JOURNAL_POST to resultat.journalpostId,
+                                    BEHOV to
+                                        mapOf(
+                                            "journalpostId" to resultat.journalpostId,
+                                            "journalførtTidspunkt" to now(),
+                                            "dokumentasjonskravJson" to packet[BEHOV]["dokumentasjonskravJson"],
+                                            "seksjonId" to packet[BEHOV]["seksjonId"].asText(),
+                                        ),
                                 )
                             val message = packet.toJson()
                             context.publish(message)
@@ -116,7 +114,7 @@ internal class JournalforingBehovLøser(
                             context.publish(
                                 JsonMessage
                                     .newMessage(
-                                        "opprett_journalpost_feilet",
+                                        "journalfør_ettersending_av_dokumentasjon_feilet",
                                         mapOf(
                                             "behovId" to behovId,
                                             "søknadId" to søknadId,
@@ -127,7 +125,7 @@ internal class JournalforingBehovLøser(
                         }
 
                         else -> {
-                            sikkerlogg.error(e) { "Opprettelse av  journalpost med $dokumenter feilet" }
+                            sikkerlogg.error(e) { "Opprettelse av journalpost med $dokumenter for søknad $søknadId feilet" }
                         }
                     }
                     throw e
@@ -138,8 +136,7 @@ internal class JournalforingBehovLøser(
 
     private enum class InnsendingType {
         NY_DIALOG,
-        ETTERSENDING_TIL_DIALOG,
-        ;
+        ETTERSENDING_TIL_DIALOG, ;
 
         fun brevkode(skjemakode: String) =
             when (this) {
@@ -166,12 +163,12 @@ internal class JournalforingBehovLøser(
     )
 
     private fun JsonNode.skjemakode(): String = this["skjemakode"].asText()
-}
 
-fun prettyPrintFileSize(size: Long): String {
-    if (size <= 0) return "0 B"
+    private fun prettyPrintFileSize(size: Long): String {
+        if (size <= 0) return "0 B"
 
-    val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-    val digitGroups = (log10(size.toDouble()) / log10(1024.0)).toInt()
-    return String.format("%.1f %s", size / 1024.0.pow(digitGroups.toDouble()), units[digitGroups])
+        val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+        val digitGroups = (log10(size.toDouble()) / log10(1024.0)).toInt()
+        return String.format("%.1f %s", size / 1024.0.pow(digitGroups.toDouble()), units[digitGroups])
+    }
 }
