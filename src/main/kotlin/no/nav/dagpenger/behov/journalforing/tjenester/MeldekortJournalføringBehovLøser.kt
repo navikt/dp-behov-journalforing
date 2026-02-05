@@ -120,7 +120,7 @@ internal class MeldekortJournalføringBehovLøser(
                     logg.info { "Løser behov $BEHOV med journalpostId=${resultat.journalpostId}" }
                 }
             } catch (e: ClientRequestException) {
-                if (e.response.status == HttpStatusCode.InternalServerError) {
+                if (e.response.status == HttpStatusCode.NotFound) {
                     sikkerlogg.warn(e) { "Feilet for '$ident'. Hvis dette er i dev, forsøk å importer identen på nytt i Dolly." }
                 }
 
