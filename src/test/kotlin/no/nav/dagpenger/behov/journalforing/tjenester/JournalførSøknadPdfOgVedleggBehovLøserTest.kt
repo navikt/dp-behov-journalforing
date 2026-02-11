@@ -1,5 +1,6 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -50,7 +51,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøserTest {
         with(sendteDokumenter.captured[0]) {
             this.brevkode shouldBe "NAV 04-01.03"
             this.tittel shouldBe "Søknad om dagpenger (ikke permittert)"
-            this.varianter.size shouldBe 2
+            this.varianter.size shouldBe 3
         }
         with(sendteDokumenter.captured[1]) {
             this.brevkode shouldBe "DOK1"
@@ -76,6 +77,36 @@ internal class JournalførSøknadPdfOgVedleggBehovLøserTest {
                 true,
                 any(),
             )
+        }
+    }
+
+    @Test
+    fun `JournalførSøknadPdfOgVedleggBehovLøser får med originalvariant av hoveddokumentet selv om den ikke er med i behovet`() {
+        val sendteDokumenter = slot<List<JournalpostApi.Dokument>>()
+        coEvery {
+            journalpostApi.opprett(any(), capture(sendteDokumenter), any(), any(), any())
+        } returns Resultat("730212311", false, emptyList(), "Journalpost ferdigstilt")
+        val forventetSøknaddata =
+            jacksonObjectMapper().writeValueAsBytes(
+                mapOf(
+                    "versjon_navn" to "OrkestratorSoknad",
+                    "søknad_uuid" to "19185bc3-7752-48c3-9886-c429c76b5041",
+                ),
+            )
+
+        testRapid.sendTestMessage(melding)
+
+        sendteDokumenter.captured.size shouldBe 3
+        with(sendteDokumenter.captured[0]) {
+            this.brevkode shouldBe "NAV 04-01.03"
+            this.tittel shouldBe "Søknad om dagpenger (ikke permittert)"
+            this.varianter.size shouldBe 3
+
+            this.varianter[2].let { originalvariant ->
+                originalvariant.format shouldBe JournalpostApi.Variant.Format.ORIGINAL
+                originalvariant.filtype shouldBe JournalpostApi.Variant.Filtype.JSON
+                originalvariant.fysiskDokument shouldBe forventetSøknaddata
+            }
         }
     }
 
