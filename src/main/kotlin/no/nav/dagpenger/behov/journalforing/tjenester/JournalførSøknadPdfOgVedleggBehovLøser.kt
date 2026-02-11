@@ -1,6 +1,7 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
@@ -136,7 +137,8 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
 
     private enum class InnsendingType {
         NY_DIALOG,
-        ETTERSENDING_TIL_DIALOG, ;
+        ETTERSENDING_TIL_DIALOG,
+        ;
 
         fun brevkode(skjemakode: String) =
             when (this) {
@@ -153,14 +155,38 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
         tittel = DokumentTittelOppslag.hentTittel(brevkode),
         varianter =
             this["varianter"].map { variant ->
-                val fysiskDokument: ByteArray = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
-                Variant(
-                    filtype = Filtype.valueOf(variant["type"].asText()),
-                    format = Format.valueOf(variant["variant"].asText()),
-                    fysiskDokument = fysiskDokument,
-                )
+                val variantformat = variant["variant"]?.asText()
+
+                if (variantformat == Format.ORIGINAL.toString()) {
+                    originalvariant(variant)
+                } else {
+                    arkivvariant(variant, ident)
+                }
             },
     )
+
+    private suspend fun arkivvariant(
+        variant: JsonNode,
+        ident: String,
+    ): Variant {
+        val fysiskDokument: ByteArray = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
+
+        return Variant(
+            filtype = Filtype.valueOf(variant["type"].asText()),
+            format = Format.valueOf(variant["variant"].asText()),
+            fysiskDokument = fysiskDokument,
+        )
+    }
+
+    private fun originalvariant(variant: JsonNode): Variant {
+        val jsonString = variant["json"].asText() ?: throw IllegalArgumentException("JSON-variant mangler 'json'-felt")
+
+        return Variant(
+            filtype = Filtype.valueOf(variant["type"].asText()),
+            format = Format.valueOf(variant["variant"].asText()),
+            fysiskDokument = jacksonObjectMapper().writeValueAsBytes(jsonString),
+        )
+    }
 
     private fun JsonNode.skjemakode(): String = this["skjemakode"].asText()
 
