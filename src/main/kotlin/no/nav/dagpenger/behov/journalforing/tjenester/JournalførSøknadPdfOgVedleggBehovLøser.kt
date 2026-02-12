@@ -1,6 +1,7 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
@@ -78,7 +79,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
                                 else -> innsendingType.brevkode(jsonNode.skjemakode())
                             }
                         val dokument = jsonNode.toDokument(ident, brevkode)
-                        dokument.copy(varianter = dokument.varianter)
+                        dokument.copy(varianter = dokument.varianter + originalvariant(søknadId))
                     }
                 val dokumenter: List<Dokument> =
                     listOf(hovedDokument) + packet[BEHOV]["dokumenter"].map { it.toDokument(ident) }
@@ -136,7 +137,8 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
 
     private enum class InnsendingType {
         NY_DIALOG,
-        ETTERSENDING_TIL_DIALOG, ;
+        ETTERSENDING_TIL_DIALOG,
+        ;
 
         fun brevkode(skjemakode: String) =
             when (this) {
@@ -161,6 +163,22 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
                 )
             },
     )
+
+    private fun originalvariant(søknadId: String): Variant {
+        val søknadsdata =
+            jacksonObjectMapper().writeValueAsBytes(
+                mapOf(
+                    "versjon_navn" to "OrkestratorSoknad",
+                    "søknad_uuid" to søknadId,
+                ),
+            )
+
+        return Variant(
+            filtype = Filtype.JSON,
+            format = Format.ORIGINAL,
+            fysiskDokument = søknadsdata,
+        )
+    }
 
     private fun JsonNode.skjemakode(): String = this["skjemakode"].asText()
 
