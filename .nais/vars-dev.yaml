@@ -1,4 +1,4 @@
 kafka:
   pool: nav-dev
 dokarkiv:
-  ingress: dokarkiv.dev-fss-pub.nais.io
+  ingress: dokarkiv-q2.dev-fss-pub.nais.io
