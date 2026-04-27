@@ -46,7 +46,7 @@ class JournalførEttersendingBehovLøserTest {
         assert(sendteDokumenter.captured.size == 2)
 
         with(sendteDokumenter.captured[0]) {
-            this.brevkode shouldBe "DOK1"
+            this.brevkode shouldBe "NAVe DOK1"
             this.tittel shouldBe "Ukjent dokumentittel"
             this.varianter.size shouldBe 2
         }
@@ -102,7 +102,7 @@ class JournalførEttersendingBehovLøserTest {
           ],
           "søknadId": "19185bc3-7752-48c3-9886-c429c76b5041",
           "ident": "12345678913",
-          "type": "NY_DIALOG",
+          "type": "ETTERSENDING_TIL_DIALOG",
           "innsendingId": "d0664505-e546-4cef-9e3f-8f49b85afb58",
           "journalfør_ettersending_av_dokumentasjon": {
             "dokumenter": [
