@@ -78,8 +78,15 @@ internal class JournalførEttersendingBehovLøser(
             }
             if (behovIdSkipSet.contains(behovId)) return
             runBlocking(MDCContext()) {
+                val dokumenterFraPacket = packet[BEHOV]["dokumenter"].toList()
                 val dokumenter: List<Dokument> =
-                    packet[BEHOV]["dokumenter"].map { it.toDokument(ident) }
+                    dokumenterFraPacket.mapIndexed { index, node ->
+                        if (index == 0) {
+                            node.toDokument(ident, innsendingType.brevkode(node.skjemakode()))
+                        } else {
+                            node.toDokument(ident)
+                        }
+                    }
 
                 sikkerlogg.info { "Oppretter journalpost for ettersending med $dokumenter" }
                 sikkerlogg.info { "Oppretter journalpost for ettersending basert på ${packet.toJson()}" }
