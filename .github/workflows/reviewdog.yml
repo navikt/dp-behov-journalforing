@@ -6,7 +6,7 @@ jobs:
     name: Check coding style violations
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
       - name: ktlint
         uses: ScaCap/action-ktlint@master
         with:
