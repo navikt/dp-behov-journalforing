@@ -20,11 +20,11 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - uses: gradle/actions/wrapper-validation@v6.1.1
-      - uses: gradle/actions/setup-gradle@v6.1.1
+      - uses: gradle/actions/wrapper-validation@v6.2.0
+      - uses: gradle/actions/setup-gradle@v6.2.0
       - run: ./gradlew --configuration-cache test
       - name: Publish results (unit test)
-        uses: EnricoMi/publish-unit-test-result-action@v2.23.0
+        uses: EnricoMi/publish-unit-test-result-action@v2.24.0
         if: (!cancelled())
         with:
           files: "**/build/test-results/test/TEST-*.xml"
