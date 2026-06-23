@@ -4,7 +4,9 @@ metadata:
   name: dp-behov-journalforing
   namespace: teamdagpenger
   labels:
-    team: teamdagpenger
+    team: "teamdagpenger"
+    app: "dp-behov-journalforing"
+    subteam: "ramp"
 spec:
   image: "{{ image }}"
   port: 8080
