@@ -2,12 +2,9 @@ package no.nav.dagpenger.behov.journalforing
 
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.RapidsConnection
 import no.nav.dagpenger.behov.journalforing.Configuration.dokarkivTokenProvider
-import no.nav.dagpenger.behov.journalforing.Configuration.dpSøknadTokenProvider
 import no.nav.dagpenger.behov.journalforing.Configuration.mellomlagringTokenProvider
 import no.nav.dagpenger.behov.journalforing.fillager.FillagerHttp
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
-import no.nav.dagpenger.behov.journalforing.soknad.SoknadHttp
-import no.nav.dagpenger.behov.journalforing.tjenester.JournalforingBehovLøser
 import no.nav.dagpenger.behov.journalforing.tjenester.JournalførEttersendingBehovLøser
 import no.nav.dagpenger.behov.journalforing.tjenester.JournalførSøknadPdfOgVedleggBehovLøser
 import no.nav.dagpenger.behov.journalforing.tjenester.MeldekortJournalføringBehovLøser
@@ -26,12 +23,6 @@ internal object App : RapidsConnection.StatusListener {
 
     private val rapidsConnection =
         RapidApplication.create(Configuration.config).also {
-            JournalforingBehovLøser(
-                rapidsConnection = it,
-                fillager = fillager,
-                journalpostApi = journalpostApi,
-                faktahenter = SoknadHttp(tokenProvider = dpSøknadTokenProvider),
-            )
             JournalførSøknadPdfOgVedleggBehovLøser(
                 rapidsConnection = it,
                 fillager = fillager,

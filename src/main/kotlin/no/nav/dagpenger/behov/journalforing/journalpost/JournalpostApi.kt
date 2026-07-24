@@ -1,7 +1,8 @@
 package no.nav.dagpenger.behov.journalforing.journalpost
 
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Sak
-import no.nav.dagpenger.behov.journalforing.tjenester.prettyPrintFileSize
+import kotlin.math.log10
+import kotlin.math.pow
 
 internal interface JournalpostApi {
     suspend fun opprett(
@@ -66,6 +67,14 @@ internal interface JournalpostApi {
             result = 31 * result + format.hashCode()
             result = 31 * result + fysiskDokument.contentHashCode()
             return result
+        }
+
+        fun prettyPrintFileSize(size: Long): String {
+            if (size <= 0) return "0 B"
+
+            val units = arrayOf("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+            val digitGroups = (log10(size.toDouble()) / log10(1024.0)).toInt()
+            return String.format("%.1f %s", size / 1024.0.pow(digitGroups.toDouble()), units[digitGroups])
         }
     }
 }

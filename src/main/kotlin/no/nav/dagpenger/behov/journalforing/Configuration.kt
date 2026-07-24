@@ -23,7 +23,6 @@ internal object Configuration {
                 "DOKARKIV_SCOPE" to "api://dev-fss.teamdokumenthandtering.dokarkiv/.default",
                 "DOKARKIV_INGRESS" to "dokarkiv-q2.dev-fss-pub.nais.io",
                 "MELLOMLAGRING_SCOPE" to "api://dev-gcp.teamdagpenger.dp-mellomlagring/.default",
-                "DP_SOKNAD_SCOPE" to "api://dev-gcp.teamdagpenger.dp-soknad/.default",
             ),
         )
     private val prodProperties =
@@ -31,7 +30,6 @@ internal object Configuration {
             mapOf(
                 "DOKARKIV_SCOPE" to "api://prod-fss.teamdokumenthandtering.dokarkiv/.default",
                 "MELLOMLAGRING_SCOPE" to "api://prod-gcp.teamdagpenger.dp-mellomlagring/.default",
-                "DP_SOKNAD_SCOPE" to "api://prod-gcp.teamdagpenger.dp-soknad/.default",
             ),
         )
     val properties: Configuration by lazy {
