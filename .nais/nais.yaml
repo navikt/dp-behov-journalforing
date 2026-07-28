@@ -42,7 +42,6 @@ spec:
         - application: logging
           namespace: nais-system
         - application: dp-mellomlagring
-        - application: dp-soknad
       external:
         - host: "{{ dokarkiv.ingress }}"
 
