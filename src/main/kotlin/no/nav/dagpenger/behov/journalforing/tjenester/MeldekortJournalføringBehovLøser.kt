@@ -1,7 +1,5 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
-import tools.jackson.core.type.TypeReference
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
@@ -20,6 +18,8 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApi.Variant.Format
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp
+import tools.jackson.core.type.TypeReference
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.Base64
 
 internal class MeldekortJournalføringBehovLøser(

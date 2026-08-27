@@ -3,7 +3,6 @@ package no.nav.dagpenger.behov.journalforing.journalpost
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility
 import com.fasterxml.jackson.annotation.JsonInclude
-import tools.jackson.databind.DeserializationFeature
 import com.natpryce.konfig.Key
 import com.natpryce.konfig.stringType
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -35,6 +34,7 @@ import no.nav.dagpenger.behov.journalforing.Configuration
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Filtype
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Dokumentvariant.Variant
 import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Journalpost.Bruker
+import tools.jackson.databind.DeserializationFeature
 import java.util.Base64
 
 private val logg = KotlinLogging.logger {}

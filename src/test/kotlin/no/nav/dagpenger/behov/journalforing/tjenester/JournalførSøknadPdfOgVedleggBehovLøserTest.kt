@@ -1,6 +1,5 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.rapids_and_rivers.test_support.TestRapid
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -23,6 +22,7 @@ import no.nav.dagpenger.behov.journalforing.journalpost.JournalpostApiHttp.Resul
 import no.nav.dagpenger.behov.journalforing.tjenester.JournalførSøknadPdfOgVedleggBehovLøser.Companion.BEHOV
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.Test
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime.now
 
 internal class JournalførSøknadPdfOgVedleggBehovLøserTest {

@@ -1,6 +1,5 @@
 package no.nav.dagpenger.behov.journalforing.journalpost
 
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.toByteReadPacket
@@ -25,6 +24,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.UUID
 
 internal class JournalpostApiHttpTest {
