@@ -1,6 +1,6 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
-import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.JsonNode
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
@@ -159,7 +159,7 @@ internal class JournalførEttersendingBehovLøser(
         brevkode = brevkode,
         tittel = DokumentTittelOppslag.hentTittel(brevkode),
         varianter =
-            this["varianter"].map { variant ->
+            this["varianter"].toList().map { variant ->
                 val fysiskDokument: ByteArray = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
                 Variant(
                     filtype = Filtype.valueOf(variant["type"].asText()),

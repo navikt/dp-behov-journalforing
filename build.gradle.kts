@@ -31,7 +31,7 @@ dependencies {
     implementation(libs.kotlin.logging)
     implementation("no.nav.dagpenger:oauth2-klient:2026.05.04-10.36.d489859941f7")
     implementation(libs.bundles.ktor.client)
-    implementation("io.ktor:ktor-serialization-jackson:${libs.versions.ktor.get()}")
+    implementation(libs.ktor.serialization.jackson)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.0")
     implementation("de.slub-dresden:urnlib:3.0.0")
 

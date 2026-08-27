@@ -1,7 +1,7 @@
 package no.nav.dagpenger.behov.journalforing.tjenester
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import com.github.navikt.tbd_libs.rapids_and_rivers.JsonMessage
 import com.github.navikt.tbd_libs.rapids_and_rivers.River
 import com.github.navikt.tbd_libs.rapids_and_rivers_api.MessageContext
@@ -82,7 +82,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
                         dokument.copy(varianter = dokument.varianter + originalvariant(søknadId))
                     }
                 val dokumenter: List<Dokument> =
-                    listOf(hovedDokument) + packet[BEHOV]["dokumenter"].map { it.toDokument(ident) }
+                    listOf(hovedDokument) + packet[BEHOV]["dokumenter"].toList().map { it.toDokument(ident) }
 
                 sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
                 sikkerlogg.info { "Oppretter journalpost basert på ${packet.toJson()}" }
@@ -154,7 +154,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
         brevkode = brevkode,
         tittel = DokumentTittelOppslag.hentTittel(brevkode),
         varianter =
-            this["varianter"].map { variant ->
+            this["varianter"].toList().map { variant ->
                 val fysiskDokument: ByteArray = fillager.hentFil(FilURN(variant["urn"].asText()), ident)
                 Variant(
                     filtype = Filtype.valueOf(variant["type"].asText()),
