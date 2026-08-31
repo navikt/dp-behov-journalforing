@@ -29,7 +29,7 @@ dependencies {
 
     implementation(libs.konfig)
     implementation(libs.kotlin.logging)
-    implementation("no.nav.dagpenger:oauth2-klient:2026.05.04-10.36.d489859941f7")
+    implementation("no.nav.dagpenger:oauth2-klient:2026.08.31-10.03.855ab05477e2")
     implementation(libs.bundles.ktor.client)
     implementation(libs.ktor.serialization.jackson)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.0")
