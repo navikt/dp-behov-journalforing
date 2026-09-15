@@ -30,12 +30,12 @@ For Go and nginx, good free alternatives exist in Chainguard's public registry.
 
 ### Tags and updates
 
-- Use major version (e.g. `openjdk-21`, `22-slim`) — **Chainguard does not backport** to minor/patch
+- Use major version (e.g. `openjdk-25`, `22-slim`) — **Chainguard does not backport** to minor/patch
 - Recommendation: don't pin SHA. Set up a workflow to rebuild regularly instead
 
 ```dockerfile
 # ✅ Chainguard fra Navs registry
-FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-21
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-25
 FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/node:22-slim
 
 # ✅ Free Chainguard for Go and nginx
@@ -44,12 +44,12 @@ FROM cgr.dev/chainguard/static:latest
 FROM cgr.dev/chainguard/nginx:latest
 
 # ⚠️ Google distroless works, but Chainguard is preferred at Nav
-FROM gcr.io/distroless/java21-debian12:nonroot
+FROM gcr.io/distroless/java25-debian13:nonroot
 FROM gcr.io/distroless/static-debian12:nonroot
 
 # ❌ Avoid full OS images
 FROM ubuntu:22.04
-FROM openjdk:21
+FROM openjdk:25
 ```
 
 ## Multi-Stage Builds
@@ -59,7 +59,7 @@ All Nav apps must use multi-stage builds for minimal image size.
 ### JVM applications (build outside Dockerfile)
 
 ```dockerfile
-FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-21
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-25
 ENV TZ="Europe/Oslo"
 COPY target/app.jar app.jar
 CMD ["-jar","app.jar"]
@@ -68,7 +68,7 @@ CMD ["-jar","app.jar"]
 ### JVM with build in Dockerfile (Kotlin/Java)
 
 ```dockerfile
-FROM gradle:8-jdk21 AS build
+FROM gradle:9-jdk25 AS build
 WORKDIR /app
 COPY build.gradle.kts settings.gradle.kts ./
 COPY gradle ./gradle
@@ -76,7 +76,7 @@ RUN gradle dependencies --no-daemon
 COPY src ./src
 RUN gradle shadowJar --no-daemon
 
-FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-21
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-25
 WORKDIR /app
 COPY --from=build /app/build/libs/*-all.jar app.jar
 CMD ["-jar", "app.jar"]
@@ -85,12 +85,12 @@ CMD ["-jar", "app.jar"]
 ### Spring Boot
 
 ```dockerfile
-FROM gradle:8-jdk21 AS build
+FROM gradle:9-jdk25 AS build
 WORKDIR /app
 COPY . .
 RUN gradle bootJar --no-daemon
 
-FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-21
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jre:openjdk-25
 WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
