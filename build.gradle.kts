@@ -3,7 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     application
-    kotlin("jvm") version "2.4.20"
+    kotlin("jvm") version "2.4.21"
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     kotlin("plugin.serialization") version "2.4.21"
 }
@@ -29,7 +29,7 @@ dependencies {
 
     implementation(libs.konfig)
     implementation(libs.kotlin.logging)
-    implementation("no.nav.dagpenger:oauth2-klient:2026.10.05-18.24.72dfe9185852")
+    implementation("no.nav.dagpenger:oauth2-klient:2026.10.08-18.23.f84047ea6970")
     implementation(libs.bundles.ktor.client)
     implementation(libs.ktor.serialization.jackson)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.0")
