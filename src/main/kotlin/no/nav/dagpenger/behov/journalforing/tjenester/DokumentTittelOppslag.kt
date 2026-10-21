@@ -52,6 +52,7 @@ object DokumentTittelOppslag {
             "T4" to "Oppholds- og arbeidstillatelse, eller registreringsbevis for EØS-borgere",
             "T5" to "SED U006 Familieinformasjon",
             "T6" to "Permitteringsvarsel",
+            "T7" to "Dokumentasjon av inntekt",
             "T8" to "Dokumentasjon av arbeidsforhold",
             "T9" to "Dokumentasjon av helse og funksjonsnivå",
             "U1" to "U1 Perioder av betydning for retten til dagpenger",
