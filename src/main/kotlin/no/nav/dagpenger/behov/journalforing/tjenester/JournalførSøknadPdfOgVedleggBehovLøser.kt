@@ -69,6 +69,7 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
                     prettyPrintFileSize(packet.toJson().length.toLong())
                 }"
             }
+            sikkerlogg.info { "Oppretter journalpost basert på ${packet.toJson()}" }
             if (behovIdSkipSet.contains(behovId)) return
             runBlocking(MDCContext()) {
                 val hovedDokument =
@@ -85,7 +86,6 @@ internal class JournalførSøknadPdfOgVedleggBehovLøser(
                     listOf(hovedDokument) + packet[BEHOV]["dokumenter"].toList().map { it.toDokument(ident) }
 
                 sikkerlogg.info { "Oppretter journalpost med $dokumenter" }
-                sikkerlogg.info { "Oppretter journalpost basert på ${packet.toJson()}" }
                 try {
                     journalpostApi
                         .opprett(
