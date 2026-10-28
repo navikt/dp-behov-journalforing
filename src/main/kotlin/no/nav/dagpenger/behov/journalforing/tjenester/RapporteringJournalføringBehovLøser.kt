@@ -60,9 +60,9 @@ internal class RapporteringJournalføringBehovLøser(
         metadata: MessageMetadata,
         meterRegistry: MeterRegistry,
     ) {
-        val ident = packet["ident"].asText()
-        val periodeId = packet[BEHOV]["periodeId"].asText()
-        val behovId = packet["@behovId"].asText()
+        val ident = packet["ident"].asString()
+        val periodeId = packet[BEHOV]["periodeId"].asString()
+        val behovId = packet["@behovId"].asString()
         if (behovId == "739e4bfd-7bda-4b58-88c7-b64cd9896def") {
             logg.warn { "Skipper journalforing av periode med id $periodeId " }
             return
@@ -75,10 +75,10 @@ internal class RapporteringJournalføringBehovLøser(
             try {
                 logg.info { "Mottok behov for ny journalpost for periode med id $periodeId" }
                 runBlocking(MDCContext()) {
-                    val brevkode = packet[BEHOV]["brevkode"].asText()
-                    val tittel = packet[BEHOV]["tittel"].asText()
-                    val json = packet[BEHOV]["json"].asText()
-                    val pdf = packet[BEHOV]["pdf"].asText()
+                    val brevkode = packet[BEHOV]["brevkode"].asString()
+                    val tittel = packet[BEHOV]["tittel"].asString()
+                    val json = packet[BEHOV]["json"].asString()
+                    val pdf = packet[BEHOV]["pdf"].asString()
 
                     val tilleggsopplysninger: List<Pair<String, String>> =
                         jacksonObjectMapper().convertValue(
