@@ -32,7 +32,7 @@ dependencies {
     implementation(libs.bundles.ktor.client)
     implementation(libs.ktor.serialization.jackson)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.11.0")
-    implementation("de.slub-dresden:urnlib:3.0.0")
+    implementation("de.slub-dresden:urnlib:4.0.0")
 
     testImplementation(kotlin("test"))
     testImplementation(libs.mockk)
